@@ -1,9 +1,9 @@
 <p>
   A form to test <b>assert</b> function from
-  <a href="https://github.com/dmail/assert">https://github.com/dmail/assert</a>
+  <a href="https://github.com/jsenv/jsenv-assert">https://github.com/jsenv/jsenv-assert</a>
 </p>
 
-<script src="https://unpkg.com/@dmail/assert@latest/dist/global/main.js"></script>
+<script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
 
 <details>
   <summary>Details about the form below</summary>
@@ -105,7 +105,7 @@
     const expectedInputValue = expectedInput.value
     const expected = eval(`(${expectedInputValue})`)
 
-    const { assert } = window.__dmail_assert__
+    const { assert } = window.__jsenv_assert__
     try {
       assert({ actual, expected })
       document.querySelector("#result").innerHTML = "assertion ok"

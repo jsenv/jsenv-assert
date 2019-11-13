@@ -258,6 +258,7 @@ assert({ actual, expected })
 <script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
 <script>
   const { assert } = window.__jsenv_assert__
+
   const actual = { foo: false }
   const expected = { foo: true }
   assert({ actual, expected })
@@ -274,6 +275,7 @@ Screnshot below is a part of console content after executing above code inside c
 
 ```js
 const { assert } = require("@dmail/assert")
+
 const actual = { foo: false }
 const expected = { foo: true }
 assert({ actual, expected })

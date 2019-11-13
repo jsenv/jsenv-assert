@@ -1,9 +1,8 @@
-<script src="https://unpkg.com/@dmail/assert@latest/dist/global/main.js"></script>
-
+<script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
 <script>
-  const { assert } = window.__dmail_assert__
-  assert({
-    actual: { foo: false },
-    expected: { foo: true },
-  })
+  const { assert } = window.__jsenv_assert__
+
+  const actual = { foo: false }
+  const expected = { foo: true }
+  assert({ actual, expected })
 </script>

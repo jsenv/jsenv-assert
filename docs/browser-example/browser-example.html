@@ -1,0 +1,9 @@
+<script src="https://unpkg.com/@dmail/assert@latest/dist/global/main.js"></script>
+
+<script>
+  const { assert } = window.__dmail_assert__
+  assert({
+    actual: { foo: false },
+    expected: { foo: true },
+  })
+</script>

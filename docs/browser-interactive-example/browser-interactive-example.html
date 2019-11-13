@@ -1,0 +1,121 @@
+<p>
+  A form to test <b>assert</b> function from
+  <a href="https://github.com/dmail/assert">https://github.com/dmail/assert</a>
+</p>
+
+<script src="https://unpkg.com/@dmail/assert@latest/dist/global/main.js"></script>
+
+<details>
+  <summary>Details about the form below</summary>
+  <ul>
+    <li>submitting the form executes assert({ actual, expected })</li>
+    <li>result will be displayed under run/reset buttons in plain text</li>
+  </ul>
+</details>
+<br />
+<form>
+  <fieldset>
+    <legend>actual</legend>
+    <label> <input type="radio" name="actual" value="true" checked /> true </label>
+    <br />
+    <label> <input type="radio" name="actual" value="false" /> false </label>
+    <br />
+    <label> <input type="radio" name="actual" value="{ name: 'a' }" /> { name: 'a' } </label>
+    <br />
+    <label> <input type="radio" name="actual" value="{ name: 'b' }" /> { name: 'b' } </label>
+    <br />
+    <label>
+      <input type="radio" name="actual" value="" />
+      <input type="text" />
+      <script>
+        ;(() => {
+          const label = document.currentScript.parentNode
+          const radioInput = label.querySelector('input[type="radio"]')
+          const textInput = label.querySelector('input[type="text"]')
+
+          textInput.onclick = () => {
+            radioInput.checked = true
+          }
+          textInput.oninput = () => {
+            textInput.setCustomValidity("")
+            try {
+              eval(`(${textInput.value})`)
+            } catch (e) {
+              textInput.setCustomValidity(`evaluation error: ${e.message}`)
+            }
+
+            radioInput.value = textInput.value
+          }
+        })()
+      </script>
+    </label>
+  </fieldset>
+  <br />
+  <fieldset>
+    <legend>expected</legend>
+    <label> <input type="radio" name="expected" value="true" checked /> true </label>
+    <br />
+    <label> <input type="radio" name="expected" value="false" /> false </label>
+    <br />
+    <label> <input type="radio" name="expected" value="{ name: 'a' }" /> { name: 'a' } </label>
+    <br />
+    <label> <input type="radio" name="expected" value="{ name: 'b' }" /> { name: 'b' } </label>
+    <br />
+    <label>
+      <input type="radio" name="expected" value="" />
+      <input type="text" />
+      <script>
+        ;(() => {
+          const label = document.currentScript.parentNode
+          const radioInput = label.querySelector('input[type="radio"]')
+          const textInput = label.querySelector('input[type="text"]')
+
+          textInput.onclick = () => {
+            radioInput.checked = true
+          }
+          textInput.oninput = () => {
+            textInput.setCustomValidity("")
+            try {
+              eval(`(${textInput.value})`)
+            } catch (e) {
+              textInput.setCustomValidity(`evaluation error: ${e.message}`)
+            }
+
+            radioInput.value = textInput.value
+          }
+        })()
+      </script>
+    </label>
+  </fieldset>
+  <br />
+  <input type="submit" value="run" />
+  <input type="reset" value="reset" />
+</form>
+
+<script>
+  const form = document.currentScript.previousElementSibling
+  form.onsubmit = (submitEvent) => {
+    submitEvent.preventDefault()
+
+    const actualInput = form.elements.actual
+    const actualInputValue = actualInput.value
+    const actual = eval(`(${actualInputValue})`)
+
+    const expectedInput = form.elements.expected
+    const expectedInputValue = expectedInput.value
+    const expected = eval(`(${expectedInputValue})`)
+
+    const { assert } = window.__dmail_assert__
+    try {
+      assert({ actual, expected })
+      document.querySelector("#result").innerHTML = "assertion ok"
+    } catch (e) {
+      document.querySelector("#result").innerHTML = e.stack
+    }
+  }
+  form.onreset = () => {
+    document.querySelector("#result").innerHTML = ""
+  }
+</script>
+
+<pre id="result"></pre>

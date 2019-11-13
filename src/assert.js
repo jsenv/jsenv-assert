@@ -20,7 +20,7 @@ export const assert = (...args) => {
     throw new Error(`assert first argument must have an expected property`)
   }
 
-  const { actual, expected } = firstArg
+  const { actual, expected, message } = firstArg
 
   const expectation = {
     actual,

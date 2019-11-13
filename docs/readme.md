@@ -1,2 +1,2 @@
-- [browser-interactive-example](https://dmail.github.io/assert/browser-interactive-example/browser-interactive-example.html)
-- [node-interactive-example](https://dmail.github.io/assert/node-interactive-example/node-interactive-example.html)
+- [browser-interactive-example](https://jsenv.github.io/jsenv-assert/browser-interactive-example/browser-interactive-example.html)
+- [node-interactive-example](https://jsenv.github.io/jsenv-assert/node-interactive-example/node-interactive-example.html)

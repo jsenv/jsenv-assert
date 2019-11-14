@@ -6,7 +6,10 @@ try {
   throw new Error("should throw")
 } catch (e) {
   if (e.message === "should throw") throw e
-  ensureErrorWithMessage(e, `assert must be called with exactly 1 argument, received 0 arguments`)
+  ensureErrorWithMessage(
+    e,
+    `assert must be called with { actual, expected }, missing first argument`,
+  )
 }
 
 try {
@@ -14,7 +17,25 @@ try {
   throw new Error("should throw")
 } catch (e) {
   if (e.message === "should throw") throw e
-  ensureErrorWithMessage(e, `assert must be called with exactly 1 argument, received 2 arguments`)
+  ensureErrorWithMessage(
+    e,
+    `assert must be called with { actual, expected }, received too much arguments`,
+  )
+}
+
+try {
+  // we could consider this call as valid
+  // but people might think assert() signature is (actual, expected)
+  // we have to throw in that case too to informe they are
+  // doing something unexpected
+  assert({ actual: true, expected: true }, false)
+  throw new Error("should throw")
+} catch (e) {
+  if (e.message === "should throw") throw e
+  ensureErrorWithMessage(
+    e,
+    `assert must be called with { actual, expected }, received too much arguments`,
+  )
 }
 
 try {
@@ -22,7 +43,10 @@ try {
   throw new Error("should throw")
 } catch (e) {
   if (e.message === "should throw") throw e
-  ensureErrorWithMessage(e, `assert first argument must be an object, received null`)
+  ensureErrorWithMessage(
+    e,
+    `assert must be called with { actual, expected }, received null as first argument instead of object`,
+  )
 }
 
 try {
@@ -30,7 +54,10 @@ try {
   throw new Error("should throw")
 } catch (e) {
   if (e.message === "should throw") throw e
-  ensureErrorWithMessage(e, `assert first argument must have an actual property`)
+  ensureErrorWithMessage(
+    e,
+    `assert must be called with { actual, expected }, missing actual property on first argument`,
+  )
 }
 
 try {
@@ -38,5 +65,8 @@ try {
   throw new Error("should throw")
 } catch (e) {
   if (e.message === "should throw") throw e
-  ensureErrorWithMessage(e, `assert first argument must have an expected property`)
+  ensureErrorWithMessage(
+    e,
+    `assert must be called with { actual, expected }, missing expected property on first argument`,
+  )
 }

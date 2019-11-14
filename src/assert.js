@@ -4,20 +4,27 @@ import { comparisonToErrorMessage } from "./internal/toErrorMessage/comparisonTo
 import { createAssertionError } from "./assertionError.js"
 
 export const assert = (...args) => {
-  if (args.length !== 1) {
-    throw new Error(
-      `assert must be called with exactly 1 argument, received ${args.length} arguments`,
-    )
+  if (args.length === 0) {
+    throw new Error(`assert must be called with { actual, expected }, missing first argument`)
+  }
+  if (args.length > 1) {
+    throw new Error(`assert must be called with { actual, expected }, received too much arguments`)
   }
   const firstArg = args[0]
   if (typeof firstArg !== "object" || firstArg === null) {
-    throw new Error(`assert first argument must be an object, received ${firstArg}`)
+    throw new Error(
+      `assert must be called with { actual, expected }, received ${firstArg} as first argument instead of object`,
+    )
   }
   if ("actual" in firstArg === false) {
-    throw new Error(`assert first argument must have an actual property`)
+    throw new Error(
+      `assert must be called with { actual, expected }, missing actual property on first argument`,
+    )
   }
   if ("expected" in firstArg === false) {
-    throw new Error(`assert first argument must have an expected property`)
+    throw new Error(
+      `assert must be called with { actual, expected }, missing expected property on first argument`,
+    )
   }
 
   const { actual, expected, message } = firstArg

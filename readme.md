@@ -294,9 +294,9 @@ If you have never installed a jsenv package, read [Installing a jsenv package](h
 This documentation is up-to-date with a specific version so prefer any of the following commands
 
 ```console
-npm install @jsenv/assert@1.1.0
+npm install @jsenv/assert@1.1.1
 ```
 
 ```console
-yarn add @jsenv/assert@1.1.0
+yarn add @jsenv/assert@1.1.1
 ```

@@ -13,7 +13,7 @@ Assert actual matches expected.
 - [Installation](#Installation)
   - [Browser usage](#Browser-usage)
   - [Node usage](#Node-usage)
-- [Documentation]
+- [Documentation](#Documentation)
   - [How it works](#How-it-works)
   - [Successfull comparison examples](#Successfull-comparison-examples)
   - [Failing comparison examples](#Failing-comparison-examples)

@@ -1,41 +1,84 @@
-# Assert
+# assert
+
+Assert actual matches expected.
 
 [![github package](https://img.shields.io/github/package-json/v/jsenv/jsenv-assert.svg?logo=github&label=package)](https://github.com/jsenv/jsenv-assert/packages)
 [![npm package](https://img.shields.io/npm/v/@jsenv/assert.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/assert)
 [![github ci](https://github.com/jsenv/jsenv-assert/workflows/ci/badge.svg)](https://github.com/jsenv/jsenv-assert/actions?workflow=ci)
 [![codecov coverage](https://codecov.io/gh/jsenv/jsenv-assert/branch/master/graph/badge.svg)](https://codecov.io/gh/jsenv/jsenv-assert)
 
-Assert actual matches expected.
-
-## Table of contents
+# Table of contents
 
 - [Presentation](#Presentation)
-- [Example](#Example)
-- [How it works](#How-it-works)
-- [Successfull comparison examples](#Successfull-comparison-examples)
-- [Failing comparison examples](#Failing-comparison-examples)
-  - [Failing on value](#Failing-on-value)
-  - [Failing on prototype](#Failing-on-prototype)
-  - [Failing on property value](#Failing-on-property-value)
-  - [Failing on properties order](#Failing-on-properties-order)
-  - [Failing on property configurability](#Failing-on-property-configurability)
-- [Why assert is strict](#Why-assert-is-strict)
-- [Browser usage](#Browser-usage)
-- [Node usage](#Node-usage)
 - [Installation](#Installation)
+  - [Browser usage](#Browser-usage)
+  - [Node usage](#Node-usage)
+- [Documentation]
+  - [How it works](#How-it-works)
+  - [Successfull comparison examples](#Successfull-comparison-examples)
+  - [Failing comparison examples](#Failing-comparison-examples)
+    - [Failing on value](#Failing-on-value)
+    - [Failing on prototype](#Failing-on-prototype)
+    - [Failing on property value](#Failing-on-property-value)
+    - [Failing on properties order](#Failing-on-properties-order)
+    - [Failing on property configurability](#Failing-on-property-configurability)
+  - [Why assert is strict](#Why-assert-is-strict)
 
-## Presentation
+# Presentation
 
 jsenv/jsenv-assert github repository publishes `@jsenv/assert` package on github and npm package registries.
 
 `@jsenv/assert` compare two values with extreme accuracy. If values differ, an error is thrown with a readable message.
 `@jsenv/assert` helps you to know if the `actual` value produced in a test matches what you `expected`.
 
-## Example
-
 ```js
 assert({ actual, expected })
 ```
+
+# Installation
+
+# Installation
+
+```console
+npm install @jsenv/assert@1.2.0
+```
+
+## Browser usage
+
+```html
+<script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
+<script>
+  const { assert } = window.__jsenv_assert__
+
+  const actual = { foo: false }
+  const expected = { foo: true }
+  assert({ actual, expected })
+</script>
+```
+
+Screnshot below is a part of console content after executing above code inside chrome.
+
+![browser console screenshot](./docs/browser-example/browser-console-screenshot.png)
+
+— see also https://jsenv.github.io/jsenv-assert/browser-interactive-example/browser-interactive-example.html.
+
+## Node usage
+
+```js
+const { assert } = require("@dmail/assert")
+
+const actual = { foo: false }
+const expected = { foo: true }
+assert({ actual, expected })
+```
+
+Screnshot below is a part of terminal output after executing above code inside node.js.
+
+![node terminal screenshot](./docs/node-example/node-terminal-screenshot.png)
+
+— see also https://jsenv.github.io/jsenv-assert/node-interactive-example/node-interactive-example.html
+
+# Documentation
 
 ## How it works
 
@@ -250,53 +293,4 @@ const { answer } = whatever()
 const actual = { answer }
 const expected = { answer: 42 }
 assert({ actual, expected })
-```
-
-## Browser usage
-
-```html
-<script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
-<script>
-  const { assert } = window.__jsenv_assert__
-
-  const actual = { foo: false }
-  const expected = { foo: true }
-  assert({ actual, expected })
-</script>
-```
-
-Screnshot below is a part of console content after executing above code inside chrome.
-
-![browser console screenshot](./docs/browser-example/browser-console-screenshot.png)
-
-— see also https://jsenv.github.io/jsenv-assert/browser-interactive-example/browser-interactive-example.html.
-
-## Node usage
-
-```js
-const { assert } = require("@dmail/assert")
-
-const actual = { foo: false }
-const expected = { foo: true }
-assert({ actual, expected })
-```
-
-Screnshot below is a part of terminal output after executing above code inside node.js.
-
-![node terminal screenshot](./docs/node-example/node-terminal-screenshot.png)
-
-— see also https://jsenv.github.io/jsenv-assert/node-interactive-example/node-interactive-example.html
-
-## Installation
-
-If you have never installed a jsenv package, read [Installing a jsenv package](https://github.com/jsenv/jsenv-core/blob/master/docs/installing-jsenv-package.md#installing-a-jsenv-package) before going further.
-
-This documentation is up-to-date with a specific version so prefer any of the following commands
-
-```console
-npm install @jsenv/assert@1.1.1
-```
-
-```console
-yarn add @jsenv/assert@1.1.1
 ```

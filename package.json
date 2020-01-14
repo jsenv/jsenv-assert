@@ -1,8 +1,7 @@
 {
 	"name": "@jsenv/assert",
-	"type": "module",
-	"description": "Assert actual matches expected.",
 	"version": "1.2.0",
+	"description": "Assert actual matches expected.",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -15,6 +14,8 @@
 	"engines": {
 		"node": ">=12.0.0"
 	},
+	"type": "module",
+	"exports": "./index.js",
 	"module": "index.js",
 	"browser": "dist/global/main.js",
 	"main": "dist/commonjs/main.js",
@@ -53,6 +54,7 @@
 		"@jsenv/eslint-config": "12.1.0",
 		"@jsenv/git-hooks": "1.2.0",
 		"@jsenv/github-release-package": "1.1.1",
+		"@jsenv/node-module-import-map": "10.0.1",
 		"@jsenv/package-publish": "1.2.0",
 		"@jsenv/prettier-check-project": "5.1.1",
 		"@jsenv/prettier-config": "1.1.0",

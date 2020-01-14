@@ -1,6 +1,6 @@
 {
 	"name": "@jsenv/assert",
-	"version": "1.2.0",
+	"version": "1.2.1",
 	"description": "Assert actual matches expected.",
 	"license": "MIT",
 	"repository": {
@@ -45,7 +45,7 @@
 		"git-hook-pre-commit": "npm run prettier-format-stage"
 	},
 	"dependencies": {
-		"@jsenv/inspect": "1.2.0"
+		"@jsenv/inspect": "1.2.1"
 	},
 	"devDependencies": {
 		"@jsenv/assert": "1.1.1",

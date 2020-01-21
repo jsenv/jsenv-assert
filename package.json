@@ -1,6 +1,6 @@
 {
 	"name": "@jsenv/assert",
-	"version": "1.2.1",
+	"version": "1.2.2",
 	"description": "Assert actual matches expected.",
 	"license": "MIT",
 	"repository": {
@@ -18,7 +18,7 @@
 	"exports": "./index.js",
 	"module": "index.js",
 	"browser": "dist/global/main.js",
-	"main": "dist/commonjs/main.js",
+	"main": "dist/commonjs/main.cjs",
 	"files": [
 		"/dist/",
 		"/src/",
@@ -34,9 +34,10 @@
 		"prettier-check": "npm run prettier-format -- --dry-run",
 		"upload-coverage": "node ./script/upload-coverage/upload-coverage.js",
 		"generate-commonjs-bundle": "node ./script/generate-commonjs-bundle/generate-commonjs-bundle.js",
+		"generate-global-bundle": "node ./script/generate-global-bundle/generate-global-bundle.js",
 		"generate-import-map": "node ./script/generate-import-map/generate-import-map.js",
 		"install-git-hooks": "node ./script/install-git-hooks/install-git-hooks.js",
-		"dist": "npm run clean && npm run generate-commonjs-bundle",
+		"dist": "npm run clean && npm run generate-commonjs-bundle && npm run generate-global-bundle",
 		"clean": "rimraf dist && rimraf coverage",
 		"reinstall": "npm run clean && rimraf node_modules && npm install",
 		"postinstall": "npm run generate-import-map && npm run install-git-hooks",
@@ -48,20 +49,19 @@
 		"@jsenv/inspect": "1.2.1"
 	},
 	"devDependencies": {
-		"@jsenv/assert": "1.1.1",
-		"@jsenv/codecov-upload": "3.1.0",
-		"@jsenv/core": "10.5.0",
-		"@jsenv/eslint-config": "12.1.0",
+		"@jsenv/assert": "1.2.1",
+		"@jsenv/codecov-upload": "3.2.0",
+		"@jsenv/core": "10.6.0-alpha.0",
+		"@jsenv/eslint-config": "12.2.0",
 		"@jsenv/git-hooks": "1.2.0",
 		"@jsenv/github-release-package": "1.1.1",
-		"@jsenv/node-module-import-map": "10.0.1",
-		"@jsenv/package-publish": "1.2.0",
-		"@jsenv/prettier-check-project": "5.1.1",
-		"@jsenv/prettier-config": "1.1.0",
+		"@jsenv/node-module-import-map": "10.1.0",
+		"@jsenv/package-publish": "1.4.0",
+		"@jsenv/prettier-check-project": "5.3.0",
+		"@jsenv/prettier-config": "1.2.0",
 		"babel-eslint": "11.0.0-beta.0",
 		"eslint": "6.8.0",
 		"prettier": "1.19.1",
-		"react": "16.9.0",
 		"rimraf": "3.0.0"
 	}
 }

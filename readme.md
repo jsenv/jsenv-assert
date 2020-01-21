@@ -26,55 +26,63 @@ Assert actual matches expected.
 
 # Presentation
 
-jsenv/jsenv-assert github repository publishes `@jsenv/assert` package on github and npm package registries.
-
 `@jsenv/assert` compare two values with extreme accuracy. If values differ, an error is thrown with a readable message.
 `@jsenv/assert` helps you to know if the `actual` value produced in a test matches what you `expected`.
 
 ```js
-assert({ actual, expected })
-```
-
-# Installation
-
-# Installation
-
-```console
-npm install @jsenv/assert@1.2.0
-```
-
-## Browser usage
-
-```html
-<script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
-<script>
-  const { assert } = window.__jsenv_assert__
-
-  const actual = { foo: false }
-  const expected = { foo: true }
-  assert({ actual, expected })
-</script>
-```
-
-Screnshot below is a part of console content after executing above code inside chrome.
-
-![browser console screenshot](./docs/browser-example/browser-console-screenshot.png)
-
-— see also https://jsenv.github.io/jsenv-assert/browser-interactive-example/browser-interactive-example.html.
-
-## Node usage
-
-```js
-const { assert } = require("@dmail/assert")
+import { assert } from "@jsenv/assert"
 
 const actual = { foo: false }
 const expected = { foo: true }
 assert({ actual, expected })
 ```
 
-Screnshot below is a part of terminal output after executing above code inside node.js.
-
 ![node terminal screenshot](./docs/node-example/node-terminal-screenshot.png)
+
+# Installation
+
+```console
+npm install @jsenv/assert@1.2.2
+```
+
+## Browser usage
+
+```html
+<script type="module">
+  import { assert } from "./node_modules/@jsenv/assert/index.js"
+</script>
+```
+
+Or
+
+```html
+<script type="module">
+  import { assert } from "https://unpkg.com/@jsenv/assert@latest/index.js"
+</script>
+```
+
+Or
+
+```html
+<script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
+<script>
+  const { assert } = window.__jsenv_assert__
+</script>
+```
+
+— see also https://jsenv.github.io/jsenv-assert/browser-interactive-example/browser-interactive-example.html.
+
+## Node usage
+
+```js
+import { assert } from "@jsenv/assert"
+```
+
+Or for node < 13
+
+```js
+const { assert } = require("@jsenv/assert")
+```
 
 — see also https://jsenv.github.io/jsenv-assert/node-interactive-example/node-interactive-example.html
 
@@ -92,7 +100,7 @@ To better understand if comparison will fail or not let's see some successfull c
 ## Successfull comparison examples
 
 ```js
-import { assert } from "@dmail/assert"
+import { assert } from "@jsenv/assert"
 
 // dates
 {
@@ -135,7 +143,7 @@ Each code example is followed with the console output.
 ### Failing on value
 
 ```js
-import { assert } from "@dmail/assert"
+import { assert } from "@jsenv/assert"
 
 const actual = 10
 const expected = "10"
@@ -162,7 +170,7 @@ value
 ### Failing on prototype
 
 ```js
-import { assert } from "@dmail/assert"
+import { assert } from "@jsenv/assert"
 
 const actual = new TypeError()
 const expected = new Error()
@@ -189,7 +197,7 @@ value[[Prototype]]
 ### Failing on property value
 
 ```js
-import { assert } from "@dmail/assert"
+import { assert } from "@jsenv/assert"
 
 const actual = { foo: true }
 const expected = { foo: false }
@@ -216,7 +224,7 @@ value.foo
 ### Failing on properties order
 
 ```js
-import { assert } from "@dmail/assert"
+import { assert } from "@jsenv/assert"
 
 const actual = { foo: true, bar: true }
 const expected = { bar: true, foo: true }
@@ -245,7 +253,7 @@ value
 ### Failing on property configurability
 
 ```js
-import { assert } from "@dmail/assert"
+import { assert } from "@jsenv/assert"
 
 const actual = Object.defineProperty({}, "answer", { value: 42 })
 const expected = { answer: 42 }
@@ -286,7 +294,7 @@ That being said, you can stay flexible by testing only a part of the value. Let'
 - you don't want to ensure returned object contains only `answer: 42`
 
 ```js
-import { assert } from "@dmail/assert"
+import { assert } from "@jsenv/assert"
 import { whatever } from "./whatever.js"
 
 const { answer } = whatever()

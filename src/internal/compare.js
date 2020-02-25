@@ -304,8 +304,16 @@ const comparePropertyDescriptor = (comparison, property, owner) => {
   if (writableComparison.failed) return
 
   if (isError(owner)) {
-    // error stack always differ, ignore it
-    if (property === "stack") return
+    if (
+      // stack fails comparison but it's not important
+      property === "stack" ||
+      // specific properties (from firefox) also failing comparison
+      property === "file" ||
+      property === "lineNumber" ||
+      property === "columnNumber"
+    ) {
+      return
+    }
   }
 
   if (typeof owner === "function") {

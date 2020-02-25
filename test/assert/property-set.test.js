@@ -9,8 +9,9 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
 }
 
 {
+  function set() {}
   const actual = Object.defineProperty({}, "foo", {})
-  const expected = Object.defineProperty({}, "foo", { set() {} })
+  const expected = Object.defineProperty({}, "foo", { set })
   try {
     assert({ actual, expected })
   } catch (e) {
@@ -28,7 +29,8 @@ value.foo[[Set]]`,
 }
 
 {
-  const actual = Object.defineProperty({}, "foo", { set() {} })
+  function set() {}
+  const actual = Object.defineProperty({}, "foo", { set })
   const expected = Object.defineProperty({}, "foo", {})
   try {
     assert({ actual, expected })

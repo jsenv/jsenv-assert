@@ -11,26 +11,26 @@ executeTestPlan({
   ...jsenvConfig,
   testPlan: {
     "test/**/*.test.js": {
-      // chromium: {
-      //   launch: launchChromiumTab,
-      // },
-      // firefox: {
-      //   launch: launchFirefoxTab,
-      // },
-      webkit: {
-        launch: (options) => launchWebkitTab({ ...options, headless: false }),
+      chromium: {
+        launch: launchChromiumTab,
       },
-      // node: {
-      //   launch: launchNode,
-      // },
+      firefox: {
+        launch: launchFirefoxTab,
+      },
+      webkit: {
+        launch: launchWebkitTab,
+      },
+      node: {
+        launch: launchNode,
+      },
     },
     "test/**/*.test.browser.js": {
-      // chromium: {
-      //   launch: launchChromiumTab,
-      // },
-      // firefox: {
-      //   launch: launchFirefoxTab,
-      // },
+      chromium: {
+        launch: launchChromiumTab,
+      },
+      firefox: {
+        launch: launchFirefoxTab,
+      },
       webkit: {
         launch: launchWebkitTab,
       },

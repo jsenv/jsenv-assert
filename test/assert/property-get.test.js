@@ -8,11 +8,12 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
 }
 
 {
+  function get() {
+    return 1
+  }
   const actual = Object.defineProperty({}, "foo", {})
   const expected = Object.defineProperty({}, "foo", {
-    get() {
-      return 1
-    },
+    get,
   })
   try {
     assert({ actual, expected })
@@ -31,11 +32,10 @@ value.foo[[Get]]`,
 }
 
 {
-  const actual = Object.defineProperty({}, "foo", {
-    get() {
-      return 1
-    },
-  })
+  function get() {
+    return 1
+  }
+  const actual = Object.defineProperty({}, "foo", { get })
   const expected = Object.defineProperty({}, "foo", {})
   try {
     assert({ actual, expected })

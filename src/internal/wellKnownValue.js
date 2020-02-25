@@ -47,6 +47,10 @@ export const addWellKnownComposite = (value, name) => {
         throw e
       }
 
+      if (!descriptor) {
+        return
+      }
+
       // do not trigger getter/setter
       if ("value" in descriptor) {
         const propertyValue = descriptor.value

@@ -334,10 +334,13 @@ const comparePropertyDescriptor = (comparison, property, owner, options) => {
     if (
       // stack fails comparison but it's not important
       property === "stack" ||
-      // specific properties (from firefox) also failing comparison
+      // firefox properties
       property === "file" ||
       property === "lineNumber" ||
-      property === "columnNumber"
+      property === "columnNumber" ||
+      // webkit properties
+      property === "line" ||
+      property === "column"
     ) {
       return
     }

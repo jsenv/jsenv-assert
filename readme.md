@@ -230,7 +230,7 @@ const actual = { foo: true, bar: true }
 const expected = { bar: true, foo: true }
 
 try {
-  assert({ actual, expected })
+  assert({ actual, expected, comparePropertyOrder: true })
 } catch (e) {
   console.log(e.message)
 }

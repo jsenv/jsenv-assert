@@ -20,9 +20,9 @@ executeTestPlan({
       webkit: {
         launch: (options) => launchWebkitTab({ ...options, headless: false }),
       },
-      node: {
-        launch: launchNode,
-      },
+      // node: {
+      //   launch: launchNode,
+      // },
     },
     "test/**/*.test.browser.js": {
       // chromium: {

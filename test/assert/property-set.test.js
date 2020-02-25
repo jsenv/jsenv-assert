@@ -2,12 +2,10 @@
 import { assert } from "../../index.js"
 import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMessage.js"
 
-try {
+{
   const actual = Object.defineProperty({}, "foo", { set: () => {} })
   const expected = Object.defineProperty({}, "foo", { set: () => {} })
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
 }
 
 try {

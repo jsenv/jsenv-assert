@@ -1,25 +1,41 @@
-const { executeTestPlan, launchFirefoxTab, launchNode } = require("@jsenv/core")
+const {
+  executeTestPlan,
+  launchChromiumTab,
+  launchFirefoxTab,
+  launchWebkitTab,
+  launchNode,
+} = require("@jsenv/core")
 const jsenvConfig = require("../../jsenv.config.js")
 
 executeTestPlan({
   ...jsenvConfig,
   testPlan: {
     "test/**/*.test.js": {
-      firefox: {
-        launch: launchFirefoxTab,
+      // chromium: {
+      //   launch: launchChromiumTab,
+      // },
+      // firefox: {
+      //   launch: launchFirefoxTab,
+      // },
+      webkit: {
+        launch: (options) => launchWebkitTab({ ...options, headless: false }),
       },
       node: {
         launch: launchNode,
       },
     },
-    "test/**/*.browser.test.js": {
-      firefox: {
-        launch: launchFirefoxTab,
+    "test/**/*.test.browser.js": {
+      // chromium: {
+      //   launch: launchChromiumTab,
+      // },
+      // firefox: {
+      //   launch: launchFirefoxTab,
+      // },
+      webkit: {
+        launch: launchWebkitTab,
       },
-      node: null,
     },
-    "test/**/*.node.test.js": {
-      firefox: null,
+    "test/**/*.test.node.js": {
       node: {
         launch: launchNode,
       },

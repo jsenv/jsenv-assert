@@ -27,14 +27,20 @@ export const assert = (...args) => {
     )
   }
 
-  const { actual, expected, message } = firstArg
+  const {
+    actual,
+    expected,
+    message,
+    comparePropertyOrder = false,
+    compareSymbolOrder = false,
+  } = firstArg
 
   const expectation = {
     actual,
     expected,
   }
 
-  const comparison = compare(expectation)
+  const comparison = compare(expectation, { comparePropertyOrder, compareSymbolOrder })
   if (comparison.failed) {
     const error = createAssertionError(message || comparisonToErrorMessage(comparison))
     if (Error.captureStackTrace) Error.captureStackTrace(error, assert)

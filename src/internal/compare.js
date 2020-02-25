@@ -3,29 +3,35 @@ import { isPrimitive } from "./isComposite.js"
 import { findPreviousComparison } from "./findPreviousComparison.js"
 import { isSet, isMap, isRegExp, isError, isArray } from "./object-subtype.js"
 
-export const compare = ({ actual, expected }) => {
-  const comparison = createComparison({ type: "root", actual, expected })
-  comparison.failed = !defaultComparer(comparison)
+export const compare = ({
+  actual,
+  expected,
+  comparePropertyOrder = false,
+  compareSymbolOrder = false,
+}) => {
+  const comparison = createComparison({
+    type: "root",
+    actual,
+    expected,
+  })
+  comparison.failed = !defaultComparer(comparison, { comparePropertyOrder, compareSymbolOrder })
   return comparison
 }
 
-const createComparison = ({ type, data, actual, expected, parent = null, children = [] }) => {
+const createComparison = ({ parent = null, children = [], ...rest }) => {
   const comparison = {
-    type,
-    data,
-    actual,
-    expected,
     parent,
     children,
+    ...rest,
   }
   return comparison
 }
 
-const defaultComparer = (comparison) => {
+const defaultComparer = (comparison, options) => {
   const { actual, expected } = comparison
 
   if (isPrimitive(expected) || isPrimitive(actual)) {
-    compareIdentity(comparison)
+    compareIdentity(comparison, options)
     return !comparison.failed
   }
 
@@ -42,6 +48,7 @@ const defaultComparer = (comparison) => {
         actual: expectedReference,
         expected: expectedReference,
         comparer: () => true,
+        options,
       })
       return true
     }
@@ -55,6 +62,7 @@ const defaultComparer = (comparison) => {
       ),
       expected: expectedReference,
       comparer: ({ actual, expected }) => actual === expected,
+      options,
     })
     if (comparison.failed) return false
     // if we expectedAReference and it did not fail, we are done
@@ -75,43 +83,44 @@ const defaultComparer = (comparison) => {
       actual: actualReference,
       expected: null,
       comparer: () => false,
+      options,
     })
     return false
   }
 
-  compareIdentity(comparison)
+  compareIdentity(comparison, options)
   // actual === expected, no need to compare prototype, properties, ...
   if (!comparison.failed) return true
   comparison.failed = false
 
-  comparePrototype(comparison)
+  comparePrototype(comparison, options)
   if (comparison.failed) return false
 
-  compareIntegrity(comparison)
+  compareIntegrity(comparison, options)
   if (comparison.failed) return false
 
-  compareExtensibility(comparison)
+  compareExtensibility(comparison, options)
   if (comparison.failed) return false
 
-  comparePropertiesDescriptors(comparison)
+  comparePropertiesDescriptors(comparison, options)
   if (comparison.failed) return false
 
-  compareProperties(comparison)
+  compareProperties(comparison, options)
   if (comparison.failed) return false
 
-  compareSymbolsDescriptors(comparison)
+  compareSymbolsDescriptors(comparison, options)
   if (comparison.failed) return false
 
-  compareSymbols(comparison)
+  compareSymbols(comparison, options)
   if (comparison.failed) return false
 
   if (typeof Set === "function" && isSet(expected)) {
-    compareSetEntries(comparison)
+    compareSetEntries(comparison, options)
     if (comparison.failed) return false
   }
 
   if (typeof Map === "function" && isMap(expected)) {
-    compareMapEntries(comparison)
+    compareMapEntries(comparison, options)
     if (comparison.failed) return false
   }
 
@@ -120,28 +129,31 @@ const defaultComparer = (comparison) => {
     // valueOf is on both actual and expected
     // usefull because new Date(10).valueOf() === 10
     // or new Boolean(true).valueOf() === true
-    compareValueOfReturnValue(comparison)
+    compareValueOfReturnValue(comparison, options)
     if (comparison.failed) return false
   }
 
   // required otherwise assert({ actual: /a/, expected: /b/ }) would not throw
   if (isRegExp(expected)) {
-    compareToStringReturnValue(comparison)
+    compareToStringReturnValue(comparison, options)
     if (comparison.failed) return false
   }
 
   return true
 }
 
-const subcompare = (comparison, { type, data, actual, expected, comparer = defaultComparer }) => {
+const subcompare = (
+  comparison,
+  { type, data, actual, expected, comparer = defaultComparer, options },
+) => {
   const subcomparison = createComparison({ type, data, actual, expected, parent: comparison })
   comparison.children.push(subcomparison)
-  subcomparison.failed = !comparer(subcomparison)
+  subcomparison.failed = !comparer(subcomparison, options)
   comparison.failed = subcomparison.failed
   return subcomparison
 }
 
-const compareIdentity = (comparison) => {
+const compareIdentity = (comparison, options) => {
   const { actual, expected } = comparison
   subcompare(comparison, {
     type: "identity",
@@ -156,33 +168,37 @@ const compareIdentity = (comparison) => {
       }
       return actual === expected
     },
+    options,
   })
 }
 
-const comparePrototype = (comparison) => {
+const comparePrototype = (comparison, options) => {
   subcompare(comparison, {
     type: "prototype",
     actual: Object.getPrototypeOf(comparison.actual),
     expected: Object.getPrototypeOf(comparison.expected),
+    options,
   })
 }
 
-const compareExtensibility = (comparison) => {
+const compareExtensibility = (comparison, options) => {
   subcompare(comparison, {
     type: "extensibility",
     actual: Object.isExtensible(comparison.actual) ? "extensible" : "non-extensible",
     expected: Object.isExtensible(comparison.expected) ? "extensible" : "non-extensible",
     comparer: ({ actual, expected }) => actual === expected,
+    options,
   })
 }
 
 // https://tc39.github.io/ecma262/#sec-setintegritylevel
-const compareIntegrity = (comparison) => {
+const compareIntegrity = (comparison, options) => {
   subcompare(comparison, {
     type: "integrity",
     actual: getIntegriy(comparison.actual),
     expected: getIntegriy(comparison.expected),
     comparer: ({ actual, expected }) => actual === expected,
+    options,
   })
 }
 
@@ -192,7 +208,7 @@ const getIntegriy = (value) => {
   return "none"
 }
 
-const compareProperties = (comparison) => {
+const compareProperties = (comparison, options) => {
   const { actual, expected } = comparison
 
   const expectedPropertyNames = Object.getOwnPropertyNames(expected)
@@ -211,19 +227,23 @@ const compareProperties = (comparison) => {
     actual: { missing: actualMissing, extra: actualExtra },
     expected: { missing: expectedMissing, extra: expectedExtra },
     comparer: () => actualMissing.length === 0 && actualExtra.length === 0,
+    options,
   })
   if (comparison.failed) return
 
-  subcompare(comparison, {
-    type: "properties-order",
-    actual: actualPropertyNames,
-    expected: expectedPropertyNames,
-    comparer: () =>
-      expectedPropertyNames.every((name, index) => name === actualPropertyNames[index]),
-  })
+  if (options.comparePropertyOrder) {
+    subcompare(comparison, {
+      type: "properties-order",
+      actual: actualPropertyNames,
+      expected: expectedPropertyNames,
+      comparer: () =>
+        expectedPropertyNames.every((name, index) => name === actualPropertyNames[index]),
+      options,
+    })
+  }
 }
 
-const compareSymbols = (comparison) => {
+const compareSymbols = (comparison, options) => {
   const { actual, expected } = comparison
 
   const expectedSymbols = Object.getOwnPropertySymbols(expected)
@@ -238,38 +258,42 @@ const compareSymbols = (comparison) => {
     actual: { missing: actualMissing, extra: actualExtra },
     expected: { missing: expectedMissing, extra: expectedExtra },
     comparer: () => actualMissing.length === 0 && actualExtra.length === 0,
+    options,
   })
   if (comparison.failed) return
 
-  subcompare(comparison, {
-    type: "symbols-order",
-    actual: actualSymbols,
-    expected: expectedSymbols,
-    comparer: () => expectedSymbols.every((symbol, index) => symbol === actualSymbols[index]),
-  })
+  if (options.compareSymbolOrder) {
+    subcompare(comparison, {
+      type: "symbols-order",
+      actual: actualSymbols,
+      expected: expectedSymbols,
+      comparer: () => expectedSymbols.every((symbol, index) => symbol === actualSymbols[index]),
+      options,
+    })
+  }
 }
 
-const comparePropertiesDescriptors = (comparison) => {
+const comparePropertiesDescriptors = (comparison, options) => {
   const { expected } = comparison
   const expectedPropertyNames = Object.getOwnPropertyNames(expected)
   // eslint-disable-next-line no-unused-vars
   for (const expectedPropertyName of expectedPropertyNames) {
-    comparePropertyDescriptor(comparison, expectedPropertyName, expected)
+    comparePropertyDescriptor(comparison, expectedPropertyName, expected, options)
     if (comparison.failed) break
   }
 }
 
-const compareSymbolsDescriptors = (comparison) => {
+const compareSymbolsDescriptors = (comparison, options) => {
   const { expected } = comparison
   const expectedSymbols = Object.getOwnPropertySymbols(expected)
   // eslint-disable-next-line no-unused-vars
   for (const expectedSymbol of expectedSymbols) {
-    comparePropertyDescriptor(comparison, expectedSymbol, expected)
+    comparePropertyDescriptor(comparison, expectedSymbol, expected, options)
     if (comparison.failed) break
   }
 }
 
-const comparePropertyDescriptor = (comparison, property, owner) => {
+const comparePropertyDescriptor = (comparison, property, owner, options) => {
   const { actual, expected } = comparison
 
   const expectedDescriptor = Object.getOwnPropertyDescriptor(expected, property)
@@ -282,6 +306,7 @@ const comparePropertyDescriptor = (comparison, property, owner) => {
     actual: actualDescriptor.configurable ? "configurable" : "non-configurable",
     expected: expectedDescriptor.configurable ? "configurable" : "non-configurable",
     comparer: ({ actual, expected }) => actual === expected,
+    options,
   })
   if (configurableComparison.failed) return
 
@@ -291,6 +316,7 @@ const comparePropertyDescriptor = (comparison, property, owner) => {
     actual: actualDescriptor.enumerable ? "enumerable" : "non-enumerable",
     expected: expectedDescriptor.enumerable ? "enumerable" : "non-enumerable",
     comparer: ({ actual, expected }) => actual === expected,
+    options,
   })
   if (enumerableComparison.failed) return
 
@@ -300,6 +326,7 @@ const comparePropertyDescriptor = (comparison, property, owner) => {
     actual: actualDescriptor.writable ? "writable" : "non-writable",
     expected: expectedDescriptor.writable ? "writable" : "non-writable",
     comparer: ({ actual, expected }) => actual === expected,
+    options,
   })
   if (writableComparison.failed) return
 
@@ -328,6 +355,7 @@ const comparePropertyDescriptor = (comparison, property, owner) => {
     data: property,
     actual: actualDescriptor.get,
     expected: expectedDescriptor.get,
+    options,
   })
   if (getComparison.failed) return
 
@@ -336,6 +364,7 @@ const comparePropertyDescriptor = (comparison, property, owner) => {
     data: property,
     actual: actualDescriptor.set,
     expected: expectedDescriptor.set,
+    options,
   })
   if (setComparison.failed) return
 
@@ -344,6 +373,7 @@ const comparePropertyDescriptor = (comparison, property, owner) => {
     data: isArray(expected) ? propertyToArrayIndex(property) : property,
     actual: actualDescriptor.value,
     expected: expectedDescriptor.value,
+    options,
   })
   if (valueComparison.failed) return
 }
@@ -357,7 +387,7 @@ const propertyToArrayIndex = (property) => {
   return property
 }
 
-const compareSetEntries = (comparison) => {
+const compareSetEntries = (comparison, options) => {
   const { actual, expected } = comparison
 
   const expectedEntries = Array.from(expected.values()).map((value, index) => {
@@ -377,6 +407,7 @@ const compareSetEntries = (comparison) => {
         data: actualEntry.index,
         actual: actualEntry.value,
         expected: expectedEntry.value,
+        options,
       })
       if (entryComparison.failed) return
     }
@@ -389,11 +420,12 @@ const compareSetEntries = (comparison) => {
     actual: actualSize,
     expected: expectedSize,
     comparer: () => actualSize === expectedSize,
+    options,
   })
   if (sizeComparison.failed) return
 }
 
-const compareMapEntries = (comparison) => {
+const compareMapEntries = (comparison, options) => {
   const { actual, expected } = comparison
 
   const actualEntries = Array.from(actual.keys()).map((key) => {
@@ -412,6 +444,7 @@ const compareMapEntries = (comparison) => {
         type: "map-entry-key-mapping",
         actual: actualEntry.key,
         expected: expectedEntryCandidate.key,
+        options,
       })
       if (mappingComparison.failed) {
         comparison.failed = false
@@ -441,6 +474,7 @@ const compareMapEntries = (comparison) => {
         data: index,
         actual: actualEntry,
         expected: actualEntryMapping.expectedEntry,
+        options,
       })
       if (mapEntryComparison.failed) return
     }
@@ -458,6 +492,7 @@ const compareMapEntries = (comparison) => {
     type: "map-entry",
     actual: unexpectedEntry,
     expected: null,
+    options,
   })
   if (unexpectedEntryComparison.failed) return
 
@@ -470,22 +505,25 @@ const compareMapEntries = (comparison) => {
     type: "map-entry",
     actual: null,
     expected: missingEntry,
+    options,
   })
   if (missingEntryComparison.failed) return
 }
 
-const compareValueOfReturnValue = (comparison) => {
+const compareValueOfReturnValue = (comparison, options) => {
   subcompare(comparison, {
     type: "value-of-return-value",
     actual: comparison.actual.valueOf(),
     expected: comparison.expected.valueOf(),
+    options,
   })
 }
 
-const compareToStringReturnValue = (comparison) => {
+const compareToStringReturnValue = (comparison, options) => {
   subcompare(comparison, {
     type: "to-string-return-value",
     actual: comparison.actual.toString(),
     expected: comparison.expected.toString(),
+    options,
   })
 }

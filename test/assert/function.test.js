@@ -7,19 +7,21 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
   assert({ actual, expected })
 }
 
-try {
+{
   const actual = () => {}
   const expected = () => {}
-  assert({ actual, expected })
-} catch (e) {
-  ensureAssertionErrorWithMessage(
-    e,
-    `unequal values.
+  try {
+    assert({ actual, expected })
+  } catch (e) {
+    ensureAssertionErrorWithMessage(
+      e,
+      `unequal values.
 --- found ---
-"actual"
+"${actual.name}"
 --- expected ---
-"expected"
+"${expected.name}"
 --- at ---
 value.name`,
-  )
+    )
+  }
 }

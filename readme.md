@@ -41,7 +41,7 @@ assert({ actual, expected })
 # Installation
 
 ```console
-npm install @jsenv/assert@2.0.0
+npm install @jsenv/assert@2.0.1
 ```
 
 ## Browser usage

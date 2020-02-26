@@ -21,7 +21,7 @@ Opinionated test assertion.
   - [Failing on property value](#Failing-on-property-value)
   - [Failing on properties order](#Failing-on-properties-order)
   - [Failing on property configurability](#Failing-on-property-configurability)
-- [Why opinionated](#Why-opinionated-)
+- [Why opinionated ?](#Why-opinionated-)
 
 # Presentation
 
@@ -41,7 +41,7 @@ assert({ actual, expected })
 # Installation
 
 ```console
-npm install @jsenv/assert@1.2.2
+npm install @jsenv/assert@2.0.0
 ```
 
 ## Browser usage

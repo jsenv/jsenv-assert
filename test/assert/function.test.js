@@ -1,27 +1,44 @@
 import { assert } from "../../index.js"
 import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMessage.js"
 
-try {
-  const actual = (() => () => {})()
-  const expected = (() => () => {})()
+// anonymous funciton
+{
+  const actual = (function() {
+    return function() {}
+  })()
+  const expected = (function() {
+    return function() {}
+  })()
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
 }
 
-try {
+// anonymous arrow function
+{
+  const actual = (function() {
+    return () => {}
+  })()
+  const expected = (function() {
+    return () => {}
+  })()
+  assert({ actual, expected })
+}
+
+// named arrow function
+{
   const actual = () => {}
   const expected = () => {}
-  assert({ actual, expected })
-} catch (e) {
-  ensureAssertionErrorWithMessage(
-    e,
-    `unequal values.
+  try {
+    assert({ actual, expected })
+  } catch (e) {
+    ensureAssertionErrorWithMessage(
+      e,
+      `unequal values.
 --- found ---
-"actual"
+"${actual.name}"
 --- expected ---
-"expected"
+"${expected.name}"
 --- at ---
 value.name`,
-  )
+    )
+  }
 }

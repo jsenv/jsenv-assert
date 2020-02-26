@@ -1,20 +1,26 @@
 import { assert } from "../../../index.js"
 import { ensureAssertionErrorWithMessage } from "../../ensureAssertionErrorWithMessage.js"
 
-try {
+{
   const actual = []
   const expected = []
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
 }
 
-try {
+{
   const actual = [0]
   const expected = [0]
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
+}
+
+{
+  const actual = {
+    range: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  }
+  const expected = {
+    range: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  }
+  assert({ actual, expected })
 }
 
 try {

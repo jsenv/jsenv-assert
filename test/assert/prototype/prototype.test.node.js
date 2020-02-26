@@ -2,29 +2,29 @@ import vm from "vm"
 import { assert } from "../../../index.js"
 import { ensureAssertionErrorWithMessage } from "../../ensureAssertionErrorWithMessage.js"
 
-try {
+{
   const actual = vm.runInNewContext("[]")
   const expected = []
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
 }
 
-try {
+{
   const actual = {}
   const expected = Object.create(null)
-  assert({ actual, expected })
-} catch (e) {
-  ensureAssertionErrorWithMessage(
-    e,
-    `unequal prototypes.
+  try {
+    assert({ actual, expected })
+  } catch (e) {
+    ensureAssertionErrorWithMessage(
+      e,
+      `unequal prototypes.
 --- prototype found ---
 global.Object.prototype
 --- prototype expected ---
 null
 --- at ---
 value[[Prototype]]`,
-  )
+    )
+  }
 }
 
 try {

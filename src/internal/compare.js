@@ -175,7 +175,7 @@ const compareIdentity = (comparison, options) => {
 // It makes me thing there is something strange inside firefox internals.
 // All this to say avoid relying on Object.is to test if the value is -0
 const isNegativeZero = (value) => {
-  return 1 / value === -Infinity
+  return typeof value === "number" && 1 / value === -Infinity
 }
 
 const comparePrototype = (comparison, options) => {

@@ -3,18 +3,13 @@ import { isPrimitive } from "./isComposite.js"
 import { findPreviousComparison } from "./findPreviousComparison.js"
 import { isSet, isMap, isRegExp, isError, isArray } from "./object-subtype.js"
 
-export const compare = ({
-  actual,
-  expected,
-  comparePropertyOrder = false,
-  compareSymbolOrder = false,
-}) => {
+export const compare = ({ actual, expected, anyOrder }) => {
   const comparison = createComparison({
     type: "root",
     actual,
     expected,
   })
-  comparison.failed = !defaultComparer(comparison, { comparePropertyOrder, compareSymbolOrder })
+  comparison.failed = !defaultComparer(comparison, { anyOrder })
   return comparison
 }
 
@@ -231,7 +226,7 @@ const compareProperties = (comparison, options) => {
   })
   if (comparison.failed) return
 
-  if (options.comparePropertyOrder) {
+  if (!options.anyOrder) {
     subcompare(comparison, {
       type: "properties-order",
       actual: actualPropertyNames,
@@ -262,7 +257,7 @@ const compareSymbols = (comparison, options) => {
   })
   if (comparison.failed) return
 
-  if (options.compareSymbolOrder) {
+  if (!options.anyOrder) {
     subcompare(comparison, {
       type: "symbols-order",
       actual: actualSymbols,

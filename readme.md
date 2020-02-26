@@ -13,16 +13,15 @@ Opinionated test assertion.
 - [Installation](#Installation)
   - [Browser usage](#Browser-usage)
   - [Node usage](#Node-usage)
-- [Documentation](#Documentation)
-  - [How it works](#How-it-works)
-  - [Successfull comparison examples](#Successfull-comparison-examples)
-  - [Failing comparison examples](#Failing-comparison-examples)
-    - [Failing on value](#Failing-on-value)
-    - [Failing on prototype](#Failing-on-prototype)
-    - [Failing on property value](#Failing-on-property-value)
-    - [Failing on properties order](#Failing-on-properties-order)
-    - [Failing on property configurability](#Failing-on-property-configurability)
-  - [Why opinionated](#Why-opinionated)
+- [How it works](#How-it-works)
+- [Successfull comparison examples](#Successfull-comparison-examples)
+- [Failing comparison examples](#Failing-comparison-examples)
+  - [Failing on value](#Failing-on-value)
+  - [Failing on prototype](#Failing-on-prototype)
+  - [Failing on property value](#Failing-on-property-value)
+  - [Failing on properties order](#Failing-on-properties-order)
+  - [Failing on property configurability](#Failing-on-property-configurability)
+- [Why opinionated](#Why-opinionated-)
 
 # Presentation
 
@@ -86,9 +85,7 @@ const { assert } = require("@jsenv/assert")
 
 — see also https://jsenv.github.io/jsenv-assert/node-interactive-example/node-interactive-example.html
 
-# Documentation
-
-## How it works
+# How it works
 
 `assert` does nothing when `actual` and `expected` comparison is successfull.<br />
 `assert` throw an error if `actual` and `expected` comparison is failing.
@@ -97,7 +94,7 @@ const { assert } = require("@jsenv/assert")
 
 To better understand if comparison will fail or not let's see some successfull comparison first and some failing comparisons afterwards.
 
-## Successfull comparison examples
+# Successfull comparison examples
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -135,12 +132,12 @@ import { assert } from "@jsenv/assert"
 }
 ```
 
-## Failing comparison examples
+# Failing comparison examples
 
 Various code examples where comparison between `actual` and `expected` is failing.<br />
 Each code example is followed with the console output.
 
-### Failing on value
+## Failing on value
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -167,7 +164,7 @@ AssertionError: unequal values.
 value
 ```
 
-### Failing on prototype
+## Failing on prototype
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -194,7 +191,7 @@ global.Error.prototype
 value[[Prototype]]
 ```
 
-### Failing on property value
+## Failing on property value
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -221,7 +218,7 @@ false
 value.foo
 ```
 
-### Failing on properties order
+## Failing on properties order
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -230,7 +227,7 @@ const actual = { foo: true, bar: true }
 const expected = { bar: true, foo: true }
 
 try {
-  assert({ actual, expected, comparePropertyOrder: true })
+  assert({ actual, expected })
 } catch (e) {
   console.log(e.message)
 }
@@ -250,7 +247,7 @@ AssertionError: unexpected properties order.
 value
 ```
 
-### Failing on property configurability
+## Failing on property configurability
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -277,28 +274,23 @@ AssertionError: unequal values.
 value.answer[[Configurable]]
 ```
 
-## Why opinionated ?
+# Why opinionated ?
 
-As shown `assert` is strict on `actual` / `expected` comparison. It is designed to make test fails if something subtle changes. You need that level of precision by default to ensure an interface does not break a given contract.
-A contract is something like:
+As shown `assert` is strict on `actual` / `expected` comparison. It is designed to make test fails if something subtle changes. Any subtle change in code might break things relying on it. You need that level of precision by default to ensure your code does not break a given contract.
 
-> calling function named `whatever` returns value `{ answer: 42 }`.
+> Contract example: calling function named `whatever` returns value `{ answer: 42 }`.
 
-And any subtle change in implementation might break the contract and things relying on it.
-
-In your test you might need flexibility in your expectations. `assert` will not abstract this flexbility to keep `assert` basic, opinionated and avoid magic.
-
-A flexibility abstraction could look like pseudo code below:
+That being said you might need flexibility in your expectations. We could imagine pseudo code that would provide that flexibility and ensure only the value is a string or not an other value.
 
 ```js
-assert({ actual: 10, expected: assert.not(10) })
+assert({ actual: 11, expected: assert.not(10) })
 // or
-assert({ actual: 'foo', expected: assert.any(String) })
+assert({ actual: "foo", expected: assert.any(String) })
 ```
 
-It's up to you to `assert` what you want with the level of flexbility your need. Some examples to illustrate:
+In order to keep `assert` simple and opinionated it does not provide such api. Instead we recommend to `assert` exactly what you want to get the level of flexbility you need.
 
-### Any string
+## any string
 
 Expecting an object with a token property being any string.
 
@@ -306,26 +298,26 @@ Expecting an object with a token property being any string.
 // assuming value is produced by an external function and produces a token randomly generated
 const value = {
   whatever: 42,
-  token: 'a-random-string'
+  token: "a-random-string",
 }
 // first assert object looks correct being flexible on value.token
 {
   const actual = value
   const expected = {
     whatever: 42,
-    token: value.token
+    token: value.token,
   }
   assert({ actual, expected })
 }
 // then assert value.token is a string
 {
   const actual = typeof value.token
-  const expected = 'string'
+  const expected = "string"
   assert({ actual, expected })
 }
 ```
 
-### Any object property order
+## any order
 
 Expecting an object with any property order.
 
@@ -338,14 +330,14 @@ const expected = { bar: true, foo: true }
 assert({ actual, expected })
 ```
 
-### Not a number
+## not something
 
-Expecting value not to be a number.
+Expecting value not to be an other.
 
 ```js
-// assuming value is produced by a function and you just want to assert it's not a number
+// assuming value is produced by a function and you just want to assert it's not 42
 const value = 42
-const actual = typeof value === 'number'
+const actual = value === 42
 const expected = false
 assert({ actual, expected })
 ```

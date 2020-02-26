@@ -3,7 +3,7 @@ import { isPrimitive } from "./isComposite.js"
 import { findPreviousComparison } from "./findPreviousComparison.js"
 import { isSet, isMap, isRegExp, isError, isArray } from "./object-subtype.js"
 
-export const compare = ({ actual, expected, anyOrder }) => {
+export const compare = ({ actual, expected }, { anyOrder }) => {
   const comparison = createComparison({
     type: "root",
     actual,
@@ -155,16 +155,27 @@ const compareIdentity = (comparison, options) => {
     actual,
     expected,
     comparer: () => {
-      if (Object.is(expected, -0)) {
-        return Object.is(actual, -0)
+      if (isNegativeZero(expected)) {
+        return isNegativeZero(actual)
       }
-      if (Object.is(actual, -0)) {
-        return Object.is(expected, -0)
+      if (isNegativeZero(actual)) {
+        return isNegativeZero(expected)
       }
       return actual === expected
     },
     options,
   })
+}
+
+// under some rare and odd circumstances firefox Object.is(-0, -0)
+// returns false making test fail.
+// it is 100% reproductible with big.test.js.
+// However putting debugger or executing Object.is just before the
+// comparison prevent Object.is failure.
+// It makes me thing there is something strange inside firefox internals.
+// All this to say avoid relying on Object.is to test if the value is -0
+const isNegativeZero = (value) => {
+  return 1 / value === -Infinity
 }
 
 const comparePrototype = (comparison, options) => {

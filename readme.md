@@ -1,6 +1,6 @@
 # assert
 
-Assert actual matches expected.
+Opinionated test assertion.
 
 [![github package](https://img.shields.io/github/package-json/v/jsenv/jsenv-assert.svg?logo=github&label=package)](https://github.com/jsenv/jsenv-assert/packages)
 [![npm package](https://img.shields.io/npm/v/@jsenv/assert.svg?logo=npm&label=package)](https://www.npmjs.com/package/@jsenv/assert)
@@ -22,7 +22,7 @@ Assert actual matches expected.
     - [Failing on property value](#Failing-on-property-value)
     - [Failing on properties order](#Failing-on-properties-order)
     - [Failing on property configurability](#Failing-on-property-configurability)
-  - [Why assert is strict](#Why-assert-is-strict)
+  - [Why opinionated](#Why-opinionated)
 
 # Presentation
 
@@ -277,28 +277,75 @@ AssertionError: unequal values.
 value.answer[[Configurable]]
 ```
 
-## Why assert is strict ?
+## Why opinionated ?
 
-As shown `assert` is strict on `actual` / `expected` comparison.<br />
-It is strict because your test ensure your interface does not break a given contract.
-You contract might be something like:
+As shown `assert` is strict on `actual` / `expected` comparison. It is designed to make test fails if something subtle changes. You need that level of precision by default to ensure an interface does not break a given contract.
+A contract is something like:
 
-> calling function named `whatever` returns value `42`.
+> calling function named `whatever` returns value `{ answer: 42 }`.
 
-And any subtle change in your implementation might break the contract and things relying on it.
+And any subtle change in implementation might break the contract and things relying on it.
 
-That being said, you can stay flexible by testing only a part of the value. Let's illustrate this with an example:
+In your test you might need flexibility in your expectations. `assert` will not abstract this flexbility to keep `assert` basic, opinionated and avoid magic.
 
-- you want to test a function called `whatever`
-- you want to ensure it returns an object with `answer: 42`
-- you don't want to ensure returned object contains only `answer: 42`
+A flexibility abstraction could look like pseudo code below:
 
 ```js
-import { assert } from "@jsenv/assert"
-import { whatever } from "./whatever.js"
+assert({ actual: 10, expected: assert.not(10) })
+// or
+assert({ actual: 'foo', expected: assert.any(String) })
+```
 
-const { answer } = whatever()
-const actual = { answer }
-const expected = { answer: 42 }
+It's up to you to `assert` what you want with the level of flexbility your need. Some examples to illustrate:
+
+### Any string
+
+Expecting an object with a token property being any string.
+
+```js
+// assuming value is produced by an external function and produces a token randomly generated
+const value = {
+  whatever: 42,
+  token: 'a-random-string'
+}
+// first assert object looks correct being flexible on value.token
+{
+  const actual = value
+  const expected = {
+    whatever: 42,
+    token: value.token
+  }
+  assert({ actual, expected })
+}
+// then assert value.token is a string
+{
+  const actual = typeof value.token
+  const expected = 'string'
+  assert({ actual, expected })
+}
+```
+
+### Any object property order
+
+Expecting an object with any property order.
+
+```js
+// assuming value is produced by a function and you don't care about properties order
+const value = { foo: true, bar: true }
+// make actual an object with your own property order
+const actual = { bar: value.bar, foo: value.foo }
+const expected = { bar: true, foo: true }
+assert({ actual, expected })
+```
+
+### Not a number
+
+Expecting value not to be a number.
+
+```js
+// assuming value is produced by a function and you just want to assert it's not a number
+const value = 42
+const actual = typeof value === 'number'
+const expected = false
 assert({ actual, expected })
 ```

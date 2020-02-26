@@ -24,7 +24,7 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
 --- found ---
 undefined
 --- expected ---
-function get() {/* hidden */}
+function ${get.name}() {/* hidden */}
 --- at ---
 value.foo[[Get]]`,
     )
@@ -44,7 +44,7 @@ value.foo[[Get]]`,
       e,
       `unequal values.
 --- found ---
-function get() {/* hidden */}
+function ${get.name}() {/* hidden */}
 --- expected ---
 undefined
 --- at ---

@@ -227,12 +227,13 @@ const compareProperties = (comparison, options) => {
   if (comparison.failed) return
 
   if (!options.anyOrder) {
+    const expectedKeys = Object.keys(expected)
+    const actualKeys = Object.keys(actual)
     subcompare(comparison, {
       type: "properties-order",
-      actual: actualPropertyNames,
-      expected: expectedPropertyNames,
-      comparer: () =>
-        expectedPropertyNames.every((name, index) => name === actualPropertyNames[index]),
+      actual: actualKeys,
+      expected: expectedKeys,
+      comparer: () => expectedKeys.every((name, index) => name === actualKeys[index]),
       options,
     })
   }

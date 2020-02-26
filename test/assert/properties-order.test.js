@@ -23,7 +23,7 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
     foo: true,
   }
   try {
-    assert({ actual, expected, comparePropertyOrder: true })
+    assert({ actual, expected })
   } catch (e) {
     ensureAssertionErrorWithMessage(
       e,
@@ -38,4 +38,21 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
 value`,
     )
   }
+}
+
+// properties order is only on enumerable properties
+// this is because code is unlikely going to rely on non enumerable property order
+// it also fixes an strange issue on webkit where
+// Object.getOwnPropertyNames(function() {}) inconsistently returns either
+// ["name", "prototype", "length"]
+// or
+// ["length", "name", "prototype"]
+{
+  const actual = {}
+  Object.defineProperty(actual, "bar", { enumerable: false })
+  Object.defineProperty(actual, "foo", { enumerable: false })
+  const expected = {}
+  Object.defineProperty(expected, "foo", { enumerable: false })
+  Object.defineProperty(expected, "bar", { enumerable: false })
+  assert({ actual, expected })
 }

@@ -42,4 +42,5 @@ executeTestPlan({
     },
   },
   coverage: process.argv.includes("--coverage"),
+  completedExecutionLogMerging: true,
 })

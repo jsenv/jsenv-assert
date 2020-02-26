@@ -28,7 +28,7 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
     [symbolb]: true,
   }
   try {
-    assert({ actual, expected, compareSymbolOrder: true })
+    assert({ actual, expected })
   } catch (e) {
     ensureAssertionErrorWithMessage(
       e,

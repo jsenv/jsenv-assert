@@ -1,12 +1,29 @@
 import { assert } from "../../index.js"
 import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMessage.js"
 
+// anonymous funciton
 {
-  const actual = (() => () => {})()
-  const expected = (() => () => {})()
+  const actual = (function() {
+    return function() {}
+  })()
+  const expected = (function() {
+    return function() {}
+  })()
   assert({ actual, expected })
 }
 
+// anonymous arrow function
+{
+  const actual = (function() {
+    return () => {}
+  })()
+  const expected = (function() {
+    return () => {}
+  })()
+  assert({ actual, expected })
+}
+
+// named arrow function
 {
   const actual = () => {}
   const expected = () => {}

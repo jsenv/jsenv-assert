@@ -21,7 +21,7 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
 --- found ---
 undefined
 --- expected ---
-function set() {/* hidden */}
+function ${set.name}() {/* hidden */}
 --- at ---
 value.foo[[Set]]`,
     )
@@ -39,7 +39,7 @@ value.foo[[Set]]`,
       e,
       `unequal values.
 --- found ---
-function set() {/* hidden */}
+function ${set.name}() {/* hidden */}
 --- expected ---
 undefined
 --- at ---

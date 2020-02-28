@@ -31,7 +31,7 @@
 		"start-exploring": "node ./script/start-exploring/start-exploring.js",
 		"test": "node --unhandled-rejections=strict ./script/test/test.js",
 		"test-with-coverage": "node ./script/test/test.js --coverage",
-		"eslint-check": "eslint .",
+		"eslint-check": "yarn run eslint .",
 		"prettier-format": "node ./script/prettier-format/prettier-format.js",
 		"prettier-format-stage": "npm run prettier-format -- --staged",
 		"prettier-check": "npm run prettier-format -- --dry-run",

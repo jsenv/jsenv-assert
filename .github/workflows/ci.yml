@@ -36,8 +36,6 @@ jobs:
         run: npm config set //npm.pkg.github.com/:_authToken ${{ secrets.GITHUB_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: yarn version
-        run: yarn -v
       - name: install
         run: yarn install
       - name: code quality

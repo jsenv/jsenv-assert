@@ -11,6 +11,103 @@ var __jsenv_assert__ = function (exports) {
 
   var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? nativeTypeOf : customTypeOf;
 
+  var defineProperty = function (obj, key, value) {
+    // Shortcircuit the slow defineProperty path when possible.
+    // We are trying to avoid issues where setters defined on the
+    // prototype cause side effects under the fast path of simple
+    // assignment. By checking for existence of the property with
+    // the in operator, we can optimize most of this overhead away.
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  };
+
+  function _objectSpread(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      // eslint-disable-next-line prefer-rest-params
+      var source = arguments[i] === null ? {} : arguments[i];
+
+      if (i % 2) {
+        // eslint-disable-next-line no-loop-func
+        ownKeys(Object(source), true).forEach(function (key) {
+          defineProperty(target, key, source[key]);
+        });
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+        // eslint-disable-next-line no-loop-func
+        ownKeys(Object(source)).forEach(function (key) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        });
+      }
+    }
+
+    return target;
+  } // This function is different to "Reflect.ownKeys". The enumerableOnly
+  // filters on symbol properties only. Returned string properties are always
+  // enumerable. It is good to use in objectSpread.
+
+
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
+
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      if (enumerableOnly) symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      }); // eslint-disable-next-line prefer-spread
+
+      keys.push.apply(keys, symbols);
+    }
+
+    return keys;
+  }
+
+  var objectWithoutPropertiesLoose = function (source, excluded) {
+    if (source === null) return {};
+    var target = {};
+    var sourceKeys = Object.keys(source);
+    var key;
+    var i;
+
+    for (i = 0; i < sourceKeys.length; i++) {
+      key = sourceKeys[i];
+      if (excluded.indexOf(key) >= 0) continue;
+      target[key] = source[key];
+    }
+
+    return target;
+  };
+
+  var _objectWithoutProperties = function (source, excluded) {
+    if (source === null) return {};
+    var target = objectWithoutPropertiesLoose(source, excluded);
+    var key;
+    var i;
+
+    if (Object.getOwnPropertySymbols) {
+      var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+
+      for (i = 0; i < sourceSymbolKeys.length; i++) {
+        key = sourceSymbolKeys[i];
+        if (excluded.indexOf(key) >= 0) continue;
+        if (!Object.prototype.propertyIsEnumerable.call(source, key)) continue;
+        target[key] = source[key];
+      }
+    }
+
+    return target;
+  };
+
   var isComposite = function isComposite(value) {
     if (value === null) return false;
     if (_typeof(value) === "object") return true;
@@ -151,44 +248,42 @@ var __jsenv_assert__ = function (exports) {
     });
   };
 
-  var compare = function compare(_ref) {
+  var compare = function compare(_ref, _ref2) {
     var actual = _ref.actual,
         expected = _ref.expected;
+    var anyOrder = _ref2.anyOrder;
     var comparison = createComparison({
       type: "root",
       actual: actual,
       expected: expected
     });
-    comparison.failed = !defaultComparer(comparison);
+    comparison.failed = !defaultComparer(comparison, {
+      anyOrder: anyOrder
+    });
     return comparison;
   };
 
-  var createComparison = function createComparison(_ref2) {
-    var type = _ref2.type,
-        data = _ref2.data,
-        actual = _ref2.actual,
-        expected = _ref2.expected,
-        _ref2$parent = _ref2.parent,
-        parent = _ref2$parent === void 0 ? null : _ref2$parent,
-        _ref2$children = _ref2.children,
-        children = _ref2$children === void 0 ? [] : _ref2$children;
-    var comparison = {
-      type: type,
-      data: data,
-      actual: actual,
-      expected: expected,
+  var createComparison = function createComparison(_ref3) {
+    var _ref3$parent = _ref3.parent,
+        parent = _ref3$parent === void 0 ? null : _ref3$parent,
+        _ref3$children = _ref3.children,
+        children = _ref3$children === void 0 ? [] : _ref3$children,
+        rest = _objectWithoutProperties(_ref3, ["parent", "children"]);
+
+    var comparison = _objectSpread({
       parent: parent,
       children: children
-    };
+    }, rest);
+
     return comparison;
   };
 
-  var defaultComparer = function defaultComparer(comparison) {
+  var defaultComparer = function defaultComparer(comparison, options) {
     var actual = comparison.actual,
         expected = comparison.expected;
 
     if (isPrimitive(expected) || isPrimitive(actual)) {
-      compareIdentity(comparison);
+      compareIdentity(comparison, options);
       return !comparison.failed;
     }
 
@@ -204,7 +299,8 @@ var __jsenv_assert__ = function (exports) {
           expected: expectedReference,
           comparer: function comparer() {
             return true;
-          }
+          },
+          options: options
         });
         return true;
       }
@@ -215,11 +311,12 @@ var __jsenv_assert__ = function (exports) {
           return referenceComparisonCandidate !== comparison && referenceComparisonCandidate.actual === comparison.actual;
         }),
         expected: expectedReference,
-        comparer: function comparer(_ref3) {
-          var actual = _ref3.actual,
-              expected = _ref3.expected;
+        comparer: function comparer(_ref4) {
+          var actual = _ref4.actual,
+              expected = _ref4.expected;
           return actual === expected;
-        }
+        },
+        options: options
       });
       if (comparison.failed) return false; // if we expectedAReference and it did not fail, we are done
       // this expectation was already compared and comparing it again
@@ -239,37 +336,38 @@ var __jsenv_assert__ = function (exports) {
         expected: null,
         comparer: function comparer() {
           return false;
-        }
+        },
+        options: options
       });
       return false;
     }
 
-    compareIdentity(comparison); // actual === expected, no need to compare prototype, properties, ...
+    compareIdentity(comparison, options); // actual === expected, no need to compare prototype, properties, ...
 
     if (!comparison.failed) return true;
     comparison.failed = false;
-    comparePrototype(comparison);
+    comparePrototype(comparison, options);
     if (comparison.failed) return false;
-    compareIntegrity(comparison);
+    compareIntegrity(comparison, options);
     if (comparison.failed) return false;
-    compareExtensibility(comparison);
+    compareExtensibility(comparison, options);
     if (comparison.failed) return false;
-    comparePropertiesDescriptors(comparison);
+    comparePropertiesDescriptors(comparison, options);
     if (comparison.failed) return false;
-    compareProperties(comparison);
+    compareProperties(comparison, options);
     if (comparison.failed) return false;
-    compareSymbolsDescriptors(comparison);
+    compareSymbolsDescriptors(comparison, options);
     if (comparison.failed) return false;
-    compareSymbols(comparison);
+    compareSymbols(comparison, options);
     if (comparison.failed) return false;
 
     if (typeof Set === "function" && isSet(expected)) {
-      compareSetEntries(comparison);
+      compareSetEntries(comparison, options);
       if (comparison.failed) return false;
     }
 
     if (typeof Map === "function" && isMap(expected)) {
-      compareMapEntries(comparison);
+      compareMapEntries(comparison, options);
       if (comparison.failed) return false;
     }
 
@@ -278,26 +376,27 @@ var __jsenv_assert__ = function (exports) {
       // valueOf is on both actual and expected
       // usefull because new Date(10).valueOf() === 10
       // or new Boolean(true).valueOf() === true
-      compareValueOfReturnValue(comparison);
+      compareValueOfReturnValue(comparison, options);
       if (comparison.failed) return false;
     } // required otherwise assert({ actual: /a/, expected: /b/ }) would not throw
 
 
     if (isRegExp(expected)) {
-      compareToStringReturnValue(comparison);
+      compareToStringReturnValue(comparison, options);
       if (comparison.failed) return false;
     }
 
     return true;
   };
 
-  var subcompare = function subcompare(comparison, _ref4) {
-    var type = _ref4.type,
-        data = _ref4.data,
-        actual = _ref4.actual,
-        expected = _ref4.expected,
-        _ref4$comparer = _ref4.comparer,
-        comparer = _ref4$comparer === void 0 ? defaultComparer : _ref4$comparer;
+  var subcompare = function subcompare(comparison, _ref5) {
+    var type = _ref5.type,
+        data = _ref5.data,
+        actual = _ref5.actual,
+        expected = _ref5.expected,
+        _ref5$comparer = _ref5.comparer,
+        comparer = _ref5$comparer === void 0 ? defaultComparer : _ref5$comparer,
+        options = _ref5.options;
     var subcomparison = createComparison({
       type: type,
       data: data,
@@ -306,12 +405,12 @@ var __jsenv_assert__ = function (exports) {
       parent: comparison
     });
     comparison.children.push(subcomparison);
-    subcomparison.failed = !comparer(subcomparison);
+    subcomparison.failed = !comparer(subcomparison, options);
     comparison.failed = subcomparison.failed;
     return subcomparison;
   };
 
-  var compareIdentity = function compareIdentity(comparison) {
+  var compareIdentity = function compareIdentity(comparison, options) {
     var actual = comparison.actual,
         expected = comparison.expected;
     subcompare(comparison, {
@@ -319,51 +418,66 @@ var __jsenv_assert__ = function (exports) {
       actual: actual,
       expected: expected,
       comparer: function comparer() {
-        if (Object.is(expected, -0)) {
-          return Object.is(actual, -0);
+        if (isNegativeZero(expected)) {
+          return isNegativeZero(actual);
         }
 
-        if (Object.is(actual, -0)) {
-          return Object.is(expected, -0);
+        if (isNegativeZero(actual)) {
+          return isNegativeZero(expected);
         }
 
         return actual === expected;
-      }
+      },
+      options: options
     });
+  }; // under some rare and odd circumstances firefox Object.is(-0, -0)
+  // returns false making test fail.
+  // it is 100% reproductible with big.test.js.
+  // However putting debugger or executing Object.is just before the
+  // comparison prevent Object.is failure.
+  // It makes me thing there is something strange inside firefox internals.
+  // All this to say avoid relying on Object.is to test if the value is -0
+
+
+  var isNegativeZero = function isNegativeZero(value) {
+    return typeof value === "number" && 1 / value === -Infinity;
   };
 
-  var comparePrototype = function comparePrototype(comparison) {
+  var comparePrototype = function comparePrototype(comparison, options) {
     subcompare(comparison, {
       type: "prototype",
       actual: Object.getPrototypeOf(comparison.actual),
-      expected: Object.getPrototypeOf(comparison.expected)
+      expected: Object.getPrototypeOf(comparison.expected),
+      options: options
     });
   };
 
-  var compareExtensibility = function compareExtensibility(comparison) {
+  var compareExtensibility = function compareExtensibility(comparison, options) {
     subcompare(comparison, {
       type: "extensibility",
       actual: Object.isExtensible(comparison.actual) ? "extensible" : "non-extensible",
       expected: Object.isExtensible(comparison.expected) ? "extensible" : "non-extensible",
-      comparer: function comparer(_ref5) {
-        var actual = _ref5.actual,
-            expected = _ref5.expected;
-        return actual === expected;
-      }
-    });
-  }; // https://tc39.github.io/ecma262/#sec-setintegritylevel
-
-
-  var compareIntegrity = function compareIntegrity(comparison) {
-    subcompare(comparison, {
-      type: "integrity",
-      actual: getIntegriy(comparison.actual),
-      expected: getIntegriy(comparison.expected),
       comparer: function comparer(_ref6) {
         var actual = _ref6.actual,
             expected = _ref6.expected;
         return actual === expected;
-      }
+      },
+      options: options
+    });
+  }; // https://tc39.github.io/ecma262/#sec-setintegritylevel
+
+
+  var compareIntegrity = function compareIntegrity(comparison, options) {
+    subcompare(comparison, {
+      type: "integrity",
+      actual: getIntegriy(comparison.actual),
+      expected: getIntegriy(comparison.expected),
+      comparer: function comparer(_ref7) {
+        var actual = _ref7.actual,
+            expected = _ref7.expected;
+        return actual === expected;
+      },
+      options: options
     });
   };
 
@@ -373,7 +487,7 @@ var __jsenv_assert__ = function (exports) {
     return "none";
   };
 
-  var compareProperties = function compareProperties(comparison) {
+  var compareProperties = function compareProperties(comparison, options) {
     var actual = comparison.actual,
         expected = comparison.expected;
     var expectedPropertyNames = Object.getOwnPropertyNames(expected);
@@ -398,22 +512,29 @@ var __jsenv_assert__ = function (exports) {
       },
       comparer: function comparer() {
         return actualMissing.length === 0 && actualExtra.length === 0;
-      }
+      },
+      options: options
     });
     if (comparison.failed) return;
-    subcompare(comparison, {
-      type: "properties-order",
-      actual: actualPropertyNames,
-      expected: expectedPropertyNames,
-      comparer: function comparer() {
-        return expectedPropertyNames.every(function (name, index) {
-          return name === actualPropertyNames[index];
-        });
-      }
-    });
+
+    if (!options.anyOrder) {
+      var expectedKeys = Object.keys(expected);
+      var actualKeys = Object.keys(actual);
+      subcompare(comparison, {
+        type: "properties-order",
+        actual: actualKeys,
+        expected: expectedKeys,
+        comparer: function comparer() {
+          return expectedKeys.every(function (name, index) {
+            return name === actualKeys[index];
+          });
+        },
+        options: options
+      });
+    }
   };
 
-  var compareSymbols = function compareSymbols(comparison) {
+  var compareSymbols = function compareSymbols(comparison, options) {
     var actual = comparison.actual,
         expected = comparison.expected;
     var expectedSymbols = Object.getOwnPropertySymbols(expected);
@@ -438,22 +559,27 @@ var __jsenv_assert__ = function (exports) {
       },
       comparer: function comparer() {
         return actualMissing.length === 0 && actualExtra.length === 0;
-      }
+      },
+      options: options
     });
     if (comparison.failed) return;
-    subcompare(comparison, {
-      type: "symbols-order",
-      actual: actualSymbols,
-      expected: expectedSymbols,
-      comparer: function comparer() {
-        return expectedSymbols.every(function (symbol, index) {
-          return symbol === actualSymbols[index];
-        });
-      }
-    });
+
+    if (!options.anyOrder) {
+      subcompare(comparison, {
+        type: "symbols-order",
+        actual: actualSymbols,
+        expected: expectedSymbols,
+        comparer: function comparer() {
+          return expectedSymbols.every(function (symbol, index) {
+            return symbol === actualSymbols[index];
+          });
+        },
+        options: options
+      });
+    }
   };
 
-  var comparePropertiesDescriptors = function comparePropertiesDescriptors(comparison) {
+  var comparePropertiesDescriptors = function comparePropertiesDescriptors(comparison, options) {
     var expected = comparison.expected;
     var expectedPropertyNames = Object.getOwnPropertyNames(expected); // eslint-disable-next-line no-unused-vars
 
@@ -464,7 +590,7 @@ var __jsenv_assert__ = function (exports) {
     try {
       for (var _iterator = expectedPropertyNames[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
         var _expectedPropertyName = _step.value;
-        comparePropertyDescriptor(comparison, _expectedPropertyName, expected);
+        comparePropertyDescriptor(comparison, _expectedPropertyName, expected, options);
         if (comparison.failed) break;
       }
     } catch (err) {
@@ -483,7 +609,7 @@ var __jsenv_assert__ = function (exports) {
     }
   };
 
-  var compareSymbolsDescriptors = function compareSymbolsDescriptors(comparison) {
+  var compareSymbolsDescriptors = function compareSymbolsDescriptors(comparison, options) {
     var expected = comparison.expected;
     var expectedSymbols = Object.getOwnPropertySymbols(expected); // eslint-disable-next-line no-unused-vars
 
@@ -494,7 +620,7 @@ var __jsenv_assert__ = function (exports) {
     try {
       for (var _iterator2 = expectedSymbols[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
         var _expectedSymbol = _step2.value;
-        comparePropertyDescriptor(comparison, _expectedSymbol, expected);
+        comparePropertyDescriptor(comparison, _expectedSymbol, expected, options);
         if (comparison.failed) break;
       }
     } catch (err) {
@@ -513,7 +639,7 @@ var __jsenv_assert__ = function (exports) {
     }
   };
 
-  var comparePropertyDescriptor = function comparePropertyDescriptor(comparison, property, owner) {
+  var comparePropertyDescriptor = function comparePropertyDescriptor(comparison, property, owner, options) {
     var actual = comparison.actual,
         expected = comparison.expected;
     var expectedDescriptor = Object.getOwnPropertyDescriptor(expected, property);
@@ -524,11 +650,12 @@ var __jsenv_assert__ = function (exports) {
       data: property,
       actual: actualDescriptor.configurable ? "configurable" : "non-configurable",
       expected: expectedDescriptor.configurable ? "configurable" : "non-configurable",
-      comparer: function comparer(_ref7) {
-        var actual = _ref7.actual,
-            expected = _ref7.expected;
+      comparer: function comparer(_ref8) {
+        var actual = _ref8.actual,
+            expected = _ref8.expected;
         return actual === expected;
-      }
+      },
+      options: options
     });
     if (configurableComparison.failed) return;
     var enumerableComparison = subcompare(comparison, {
@@ -536,11 +663,12 @@ var __jsenv_assert__ = function (exports) {
       data: property,
       actual: actualDescriptor.enumerable ? "enumerable" : "non-enumerable",
       expected: expectedDescriptor.enumerable ? "enumerable" : "non-enumerable",
-      comparer: function comparer(_ref8) {
-        var actual = _ref8.actual,
-            expected = _ref8.expected;
+      comparer: function comparer(_ref9) {
+        var actual = _ref9.actual,
+            expected = _ref9.expected;
         return actual === expected;
-      }
+      },
+      options: options
     });
     if (enumerableComparison.failed) return;
     var writableComparison = subcompare(comparison, {
@@ -548,17 +676,22 @@ var __jsenv_assert__ = function (exports) {
       data: property,
       actual: actualDescriptor.writable ? "writable" : "non-writable",
       expected: expectedDescriptor.writable ? "writable" : "non-writable",
-      comparer: function comparer(_ref9) {
-        var actual = _ref9.actual,
-            expected = _ref9.expected;
+      comparer: function comparer(_ref10) {
+        var actual = _ref10.actual,
+            expected = _ref10.expected;
         return actual === expected;
-      }
+      },
+      options: options
     });
     if (writableComparison.failed) return;
 
     if (isError(owner)) {
-      // error stack always differ, ignore it
-      if (property === "stack") return;
+      if ( // stack fails comparison but it's not important
+      property === "stack" || // firefox properties
+      property === "file" || property === "lineNumber" || property === "columnNumber" || // webkit properties
+      property === "line" || property === "column") {
+        return;
+      }
     }
 
     if (typeof owner === "function") {
@@ -572,21 +705,24 @@ var __jsenv_assert__ = function (exports) {
       type: "property-get",
       data: property,
       actual: actualDescriptor.get,
-      expected: expectedDescriptor.get
+      expected: expectedDescriptor.get,
+      options: options
     });
     if (getComparison.failed) return;
     var setComparison = subcompare(comparison, {
       type: "property-set",
       data: property,
       actual: actualDescriptor.set,
-      expected: expectedDescriptor.set
+      expected: expectedDescriptor.set,
+      options: options
     });
     if (setComparison.failed) return;
     var valueComparison = subcompare(comparison, {
       type: "property-value",
       data: isArray(expected) ? propertyToArrayIndex(property) : property,
       actual: actualDescriptor.value,
-      expected: expectedDescriptor.value
+      expected: expectedDescriptor.value,
+      options: options
     });
     if (valueComparison.failed) return;
   };
@@ -602,7 +738,7 @@ var __jsenv_assert__ = function (exports) {
     return property;
   };
 
-  var compareSetEntries = function compareSetEntries(comparison) {
+  var compareSetEntries = function compareSetEntries(comparison, options) {
     var actual = comparison.actual,
         expected = comparison.expected;
     var expectedEntries = Array.from(expected.values()).map(function (value, index) {
@@ -633,7 +769,8 @@ var __jsenv_assert__ = function (exports) {
             type: "set-entry",
             data: _actualEntry.index,
             actual: _actualEntry.value,
-            expected: _expectedEntry.value
+            expected: _expectedEntry.value,
+            options: options
           });
           if (entryComparison.failed) return;
         }
@@ -661,12 +798,13 @@ var __jsenv_assert__ = function (exports) {
       expected: expectedSize,
       comparer: function comparer() {
         return actualSize === expectedSize;
-      }
+      },
+      options: options
     });
     if (sizeComparison.failed) return;
   };
 
-  var compareMapEntries = function compareMapEntries(comparison) {
+  var compareMapEntries = function compareMapEntries(comparison, options) {
     var actual = comparison.actual,
         expected = comparison.expected;
     var actualEntries = Array.from(actual.keys()).map(function (key) {
@@ -688,7 +826,8 @@ var __jsenv_assert__ = function (exports) {
         var mappingComparison = subcompare(comparison, {
           type: "map-entry-key-mapping",
           actual: actualEntry.key,
-          expected: expectedEntryCandidate.key
+          expected: expectedEntryCandidate.key,
+          options: options
         });
 
         if (mappingComparison.failed) {
@@ -722,7 +861,8 @@ var __jsenv_assert__ = function (exports) {
           type: "map-entry",
           data: index,
           actual: actualEntry,
-          expected: actualEntryMapping.expectedEntry
+          expected: actualEntryMapping.expectedEntry,
+          options: options
         });
         if (mapEntryComparison.failed) return {
           v: void 0
@@ -767,7 +907,8 @@ var __jsenv_assert__ = function (exports) {
     var unexpectedEntryComparison = subcompare(comparison, {
       type: "map-entry",
       actual: unexpectedEntry,
-      expected: null
+      expected: null,
+      options: options
     });
     if (unexpectedEntryComparison.failed) return; // third check there is no missing entry (expected but not found)
 
@@ -780,87 +921,29 @@ var __jsenv_assert__ = function (exports) {
     var missingEntryComparison = subcompare(comparison, {
       type: "map-entry",
       actual: null,
-      expected: missingEntry
+      expected: missingEntry,
+      options: options
     });
     if (missingEntryComparison.failed) return;
   };
 
-  var compareValueOfReturnValue = function compareValueOfReturnValue(comparison) {
+  var compareValueOfReturnValue = function compareValueOfReturnValue(comparison, options) {
     subcompare(comparison, {
       type: "value-of-return-value",
       actual: comparison.actual.valueOf(),
-      expected: comparison.expected.valueOf()
+      expected: comparison.expected.valueOf(),
+      options: options
     });
   };
 
-  var compareToStringReturnValue = function compareToStringReturnValue(comparison) {
+  var compareToStringReturnValue = function compareToStringReturnValue(comparison, options) {
     subcompare(comparison, {
       type: "to-string-return-value",
       actual: comparison.actual.toString(),
-      expected: comparison.expected.toString()
+      expected: comparison.expected.toString(),
+      options: options
     });
   };
-
-  var defineProperty = function (obj, key, value) {
-    // Shortcircuit the slow defineProperty path when possible.
-    // We are trying to avoid issues where setters defined on the
-    // prototype cause side effects under the fast path of simple
-    // assignment. By checking for existence of the property with
-    // the in operator, we can optimize most of this overhead away.
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
-  };
-
-  function _objectSpread(target) {
-    for (var i = 1; i < arguments.length; i++) {
-      // eslint-disable-next-line prefer-rest-params
-      var source = arguments[i] === null ? {} : arguments[i];
-
-      if (i % 2) {
-        // eslint-disable-next-line no-loop-func
-        ownKeys(Object(source), true).forEach(function (key) {
-          defineProperty(target, key, source[key]);
-        });
-      } else if (Object.getOwnPropertyDescriptors) {
-        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
-        // eslint-disable-next-line no-loop-func
-        ownKeys(Object(source)).forEach(function (key) {
-          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
-        });
-      }
-    }
-
-    return target;
-  } // This function is different to "Reflect.ownKeys". The enumerableOnly
-  // filters on symbol properties only. Returned string properties are always
-  // enumerable. It is good to use in objectSpread.
-
-
-  function ownKeys(object, enumerableOnly) {
-    var keys = Object.keys(object);
-
-    if (Object.getOwnPropertySymbols) {
-      var symbols = Object.getOwnPropertySymbols(object);
-      if (enumerableOnly) symbols = symbols.filter(function (sym) {
-        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-      }); // eslint-disable-next-line prefer-spread
-
-      keys.push.apply(keys, symbols);
-    }
-
-    return keys;
-  }
 
   var valueToType = function valueToType(value) {
     var primitiveType = valueToPrimitiveType(value);
@@ -924,7 +1007,14 @@ var __jsenv_assert__ = function (exports) {
   };
 
   var inspectNumber = function inspectNumber(value) {
-    return Object.is(value, -0) ? "-0" : value.toString();
+    return isNegativeZero$1(value) ? "-0" : value.toString();
+  }; // Use this and instead of Object.is(value, -0)
+  // because in some corner cases firefox returns false
+  // for Object.is(-0, -0)
+
+
+  var isNegativeZero$1 = function isNegativeZero(value) {
+    return value === 0 && 1 / value === -Infinity;
   }; // https://github.com/joliss/js-string-escape/blob/master/index.js
   // http://javascript.crockford.com/remedial.html
 
@@ -1571,6 +1661,10 @@ var __jsenv_assert__ = function (exports) {
           }
 
           throw e;
+        }
+
+        if (!descriptor) {
+          return;
         } // do not trigger getter/setter
 
 
@@ -2030,14 +2124,41 @@ var __jsenv_assert__ = function (exports) {
       throw new Error("assert must be called with { actual, expected }, missing expected property on first argument");
     }
 
-    var actual = firstArg.actual,
-        expected = firstArg.expected,
-        message = firstArg.message;
+    return _assert.apply(void 0, arguments);
+  };
+  /*
+   * anyOrder is not documented because ../readme.md#Why-opinionated-
+   * but I feel like the property order comparison might be too strict
+   * and if we cannot find a proper alternative, being able to disable it
+   * might be useful
+   *
+   * Documentation suggest to take the object and reorder manually
+   *
+   * const value = { bar: true, foo: true }
+   * const actual = { foo: value.foo, bar: value.bar }
+   * const expected = { foo: true, bar: true }
+   *
+   * An other good alternative could be an helper that would sort properties
+   *
+   * const value = sortProperties(value)
+   * const expected = sortProperties({ foo: true, bar: true })
+   s*
+   */
+
+
+  var _assert = function _assert(_ref) {
+    var actual = _ref.actual,
+        expected = _ref.expected,
+        message = _ref.message,
+        _ref$anyOrder = _ref.anyOrder,
+        anyOrder = _ref$anyOrder === void 0 ? false : _ref$anyOrder;
     var expectation = {
       actual: actual,
       expected: expected
     };
-    var comparison = compare(expectation);
+    var comparison = compare(expectation, {
+      anyOrder: anyOrder
+    });
 
     if (comparison.failed) {
       var error = createAssertionError(message || comparisonToErrorMessage(comparison));

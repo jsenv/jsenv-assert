@@ -46,13 +46,7 @@ npm install @jsenv/assert@2.0.2
 
 ## Browser usage
 
-```html
-<script type="module">
-  import { assert } from "./node_modules/@jsenv/assert/dist/esmodule/main.js"
-</script>
-```
-
-Or
+Usage from a cdn.
 
 ```html
 <script type="module">
@@ -60,13 +54,27 @@ Or
 </script>
 ```
 
-Or
+Usage from your node_modules.
+
+```html
+<script type="module">
+  import { assert } from "./node_modules/@jsenv/assert/dist/esmodule/main.js"
+</script>
+```
+
+Usage from your node modules (using basic script tag).
 
 ```html
 <script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
 <script>
   const { assert } = window.__jsenv_assert__
 </script>
+```
+
+Usage if you execute your code with something capable to consume esmodule and resolve node module bare specifiers. It means something that will search at `"./node_modules/@jsenv/assert/index.js"` for `import "@jsenv/assert"'`. Tools like webpack rollup for instance.
+
+```js
+import { assert } from "@jsenv/assert"
 ```
 
 — see also https://jsenv.github.io/jsenv-assert/browser-interactive-example/browser-interactive-example.html.

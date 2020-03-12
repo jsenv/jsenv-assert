@@ -48,7 +48,7 @@ npm install @jsenv/assert@2.0.2
 
 ```html
 <script type="module">
-  import { assert } from "./node_modules/@jsenv/assert/index.js"
+  import { assert } from "./node_modules/@jsenv/assert/dist/esmodule/main.js"
 </script>
 ```
 
@@ -56,7 +56,7 @@ Or
 
 ```html
 <script type="module">
-  import { assert } from "https://unpkg.com/@jsenv/assert@latest/index.js"
+  import { assert } from "https://unpkg.com/@jsenv/assert@latest/dist/esmodule/main.js"
 </script>
 ```
 

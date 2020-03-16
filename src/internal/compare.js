@@ -1,7 +1,7 @@
 /* eslint-disable no-use-before-define */
 import { isPrimitive } from "./isComposite.js"
 import { findPreviousComparison } from "./findPreviousComparison.js"
-import { isSet, isMap, isRegExp, isError, isArray } from "./object-subtype.js"
+import { isSet, isMap, isRegExp, isError, isArray, somePrototypeMatch } from "./object-subtype.js"
 
 export const compare = ({ actual, expected }, { anyOrder }) => {
   const comparison = createComparison({
@@ -11,6 +11,46 @@ export const compare = ({ actual, expected }, { anyOrder }) => {
   })
   comparison.failed = !defaultComparer(comparison, { anyOrder })
   return comparison
+}
+
+const expectationSymbol = Symbol.for("expectation")
+
+const createExpectation = (data) => {
+  return {
+    [expectationSymbol]: true,
+    data,
+  }
+}
+
+export const createNotExpectation = (value) => {
+  return createExpectation({
+    type: "not",
+    expected: value,
+    comparer: ({ actual }) => {
+      if (isNegativeZero(value)) {
+        return !isNegativeZero(actual)
+      }
+      if (isNegativeZero(actual)) {
+        return !isNegativeZero(value)
+      }
+      return actual !== value
+    },
+  })
+}
+
+export const createAnyExpectation = (expectedConstructor) => {
+  return createExpectation({
+    type: "any",
+    expected: expectedConstructor,
+    comparer: ({ actual }) => {
+      return somePrototypeMatch(
+        actual,
+        ({ constructor }) =>
+          constructor &&
+          (constructor === expectedConstructor || constructor.name === expectedConstructor.name),
+      )
+    },
+  })
 }
 
 const createComparison = ({ parent = null, children = [], ...rest }) => {
@@ -24,6 +64,15 @@ const createComparison = ({ parent = null, children = [], ...rest }) => {
 
 const defaultComparer = (comparison, options) => {
   const { actual, expected } = comparison
+
+  if (expected && expectationSymbol in expected) {
+    subcompare(comparison, {
+      ...expected.data,
+      actual,
+      options,
+    })
+    return !comparison.failed
+  }
 
   if (isPrimitive(expected) || isPrimitive(actual)) {
     compareIdentity(comparison, options)

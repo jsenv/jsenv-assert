@@ -1,45 +1,37 @@
 import { assert } from "../../index.js"
 import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMessage.js"
 
-try {
+{
   const actual = {}
   actual.self = actual
   const expected = {}
   expected.self = expected
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
 }
 
-try {
+{
   const actual = {}
   actual.object = { parent: actual }
   const expected = {}
   expected.object = { parent: expected }
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
 }
 
-try {
+{
   const actual = {}
   actual.object = { self: actual, self2: actual }
   const expected = {}
   expected.object = { self: expected, self2: expected }
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
 }
 
-try {
+{
   const actual = {}
   actual.object = { self: actual, self2: actual }
   const expected = {}
   expected.object = { self: expected, self2: expected }
 
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
 }
 
 try {

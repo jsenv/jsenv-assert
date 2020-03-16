@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-import { compare } from "./internal/compare.js"
+import { compare, createNotExpectation, createAnyExpectation } from "./internal/compare.js"
 import { comparisonToErrorMessage } from "./internal/toErrorMessage/comparisonToErrorMessage.js"
 import { createAssertionError } from "./assertionError.js"
 
@@ -32,6 +32,14 @@ export const assert = (...args) => {
   }
 
   return _assert(...args)
+}
+
+assert.not = (value) => {
+  return createNotExpectation(value)
+}
+
+assert.any = (Constructor) => {
+  return createAnyExpectation(Constructor)
 }
 
 /*

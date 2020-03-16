@@ -1,12 +1,10 @@
 import { assert } from "../../index.js"
 import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMessage.js"
 
-try {
+{
   const actual = true
   const expected = true
   assert({ actual, expected })
-} catch (e) {
-  throw new Error(`should not throw`)
 }
 
 try {

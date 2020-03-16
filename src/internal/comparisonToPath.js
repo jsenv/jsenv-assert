@@ -64,7 +64,10 @@ export const comparisonToPath = (comparison, name = "value") => {
     if (type === "value-of-return-value") {
       return `${previous}.valueOf()`
     }
-    if (type === "identity") {
+    if (type === "identity" || type === "not") {
+      return previous
+    }
+    if (type === "any") {
       return previous
     }
     return `${previous} type:${type}, data:${data}`

@@ -1,4 +1,5 @@
 /* eslint-disable import/max-dependencies */
+import { anyComparisonToErrorMessage } from "./anyComparisonToErrorMessage.js"
 import { defaultComparisonToErrorMessage } from "./defaultComparisonToErrorMessage.js"
 import { referenceComparisonToErrorMessage } from "./referenceComparisonToErrorMessage.js"
 import { prototypeComparisonToErrorMessage } from "./prototypeComparisonToErrorMessage.js"
@@ -8,6 +9,7 @@ import { symbolsComparisonToErrorMessage } from "./symbolsComparisonToErrorMessa
 import { symbolsOrderComparisonToErrorMessage } from "./symbolsOrderComparisonToErrorMessage.js"
 import { setSizeComparisonToMessage } from "./setSizeComparisonToMessage.js"
 import { mapEntryComparisonToErrorMessage } from "./mapEntryComparisonToErrorMessage.js"
+import { notComparisonToErrorMessage } from "./notComparisonToErrorMessage.js"
 import { arrayLengthComparisonToMessage } from "./arrayLengthComparisonToMessage.js"
 
 export const comparisonToErrorMessage = (comparison) => {
@@ -15,7 +17,9 @@ export const comparisonToErrorMessage = (comparison) => {
   return (
     firstFunctionReturningSomething(
       [
+        anyComparisonToErrorMessage,
         mapEntryComparisonToErrorMessage,
+        notComparisonToErrorMessage,
         prototypeComparisonToErrorMessage,
         referenceComparisonToErrorMessage,
         propertiesComparisonToErrorMessage,

@@ -404,6 +404,24 @@ const comparePropertyDescriptor = (comparison, property, owner, options) => {
   }
 
   if (typeof owner === "function") {
+    if (
+      owner.name === "RegExp" &&
+      [
+        "input",
+        "$_",
+        "lastMatch",
+        "$&",
+        "lastParen",
+        "$+",
+        "leftContext",
+        "$`",
+        "rightContext",
+        "$'",
+      ].includes(property)
+    ) {
+      return
+    }
+
     // function caller could differ but we want to ignore that
     if (property === "caller") return
     // function arguments could differ but we want to ignore that

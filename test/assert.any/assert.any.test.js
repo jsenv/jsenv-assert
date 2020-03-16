@@ -29,7 +29,7 @@ import { executeInNewContext } from "../executeInNewContext.js"
 --- found ---
 {}
 --- expected ---
-any(User)
+any(${User.name})
 --- at ---
 value`,
     )

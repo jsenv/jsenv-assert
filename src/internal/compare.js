@@ -65,7 +65,7 @@ const createComparison = ({ parent = null, children = [], ...rest }) => {
 const defaultComparer = (comparison, options) => {
   const { actual, expected } = comparison
 
-  if (expected && expectationSymbol in expected) {
+  if (typeof expected === "object" && expected !== null && expectationSymbol in expected) {
     subcompare(comparison, {
       ...expected.data,
       actual,
@@ -392,6 +392,7 @@ const comparePropertyDescriptor = (comparison, property, owner, options) => {
       property === "stack" ||
       // firefox properties
       property === "file" ||
+      property === "fileName" ||
       property === "lineNumber" ||
       property === "columnNumber" ||
       // webkit properties

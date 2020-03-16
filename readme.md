@@ -46,7 +46,7 @@ npm install @jsenv/assert@2.0.2
 
 ## Browser usage
 
-Usage from a cdn.
+From a remote server.
 
 ```html
 <script type="module">
@@ -54,15 +54,7 @@ Usage from a cdn.
 </script>
 ```
 
-Usage from your node_modules.
-
-```html
-<script type="module">
-  import { assert } from "./node_modules/@jsenv/assert/dist/esmodule/main.js"
-</script>
-```
-
-Usage from your node modules (using basic script tag).
+From a remote server with basic script tag.
 
 ```html
 <script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
@@ -71,11 +63,21 @@ Usage from your node modules (using basic script tag).
 </script>
 ```
 
-Usage if you execute your code with something capable to consume esmodule and resolve node module bare specifiers. It means something that will search at `"./node_modules/@jsenv/assert/index.js"` for `import "@jsenv/assert"'`. Tools like webpack rollup for instance.
+From your node_modules.
+
+```html
+<script type="module">
+  import { assert } from "./node_modules/@jsenv/assert/dist/esmodule/main.js"
+</script>
+```
+
+From your node_modules with bare specifier.
 
 ```js
 import { assert } from "@jsenv/assert"
 ```
+
+You need to execute your code with something capable to consume esmodule and resolve node module bare specifiers. Something that searches at `"./node_modules/@jsenv/assert/index.js"` for `import "@jsenv/assert"'`. rollup or webpack can do this for instance.
 
 — see also https://jsenv.github.io/jsenv-assert/browser-interactive-example/browser-interactive-example.html.
 
@@ -192,9 +194,9 @@ Console output
 ```console
 AssertionError: unequal prototypes.
 --- prototype found ---
-global.TypeError.prototype
+window.TypeError.prototype
 --- prototype expected ---
-global.Error.prototype
+window.Error.prototype
 --- at ---
 value[[Prototype]]
 ```

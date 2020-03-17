@@ -8,6 +8,37 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
 }
 
 {
+  const actual = -0
+  const expected = assert.not(0)
+  assert({ actual, expected })
+}
+
+{
+  const actual = 0
+  const expected = assert.not(-0)
+  assert({ actual, expected })
+}
+
+{
+  const actual = -0
+  const expected = assert.not(-0)
+  try {
+    assert({ actual, expected })
+  } catch (e) {
+    ensureAssertionErrorWithMessage(
+      e,
+      `unexpected value.
+--- found ---
+-0
+--- expected ---
+an other value
+--- at ---
+value`,
+    )
+  }
+}
+
+{
   const actual = 42
   const expected = assert.not(42)
   try {

@@ -297,31 +297,19 @@ As shown `assert` is strict on `actual` / `expected` comparison. It is designed 
 
 ## Properties order constraint
 
-The strongest contraints is that actual and expected must have the same properties order. If a function suddenly changes object properties order it could break things relying on it.
+The strongest contraints is that actual and expected must have the same properties order. In general code does not rely on properties order but it might be crucial.
 
 ```js
-const createSomething = () => {
-  return {
-    foo: true,
-    bar: true,
-  }
-}
+Object.keys({
+  foo: true,
+  bar: true,
+})[0] // "foo"
 
-Object.keys(createSomething())[0] // "foo"
-
-// if you change createSomething to return an object with different property order
-
-const createSomething2 = () => {
-  return {
-    bar: true,
-    foo: true,
-  }
-}
-
-Object.keys(createSomething2())[0] // "bar"
+Object.keys({
+  bar: true,
+  foo: true,
+})[0] // "bar"
 ```
-
-In general code does not rely on properties order but it might be crucial.
 
 ## Flexible assertions
 

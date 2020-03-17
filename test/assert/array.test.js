@@ -1,5 +1,6 @@
-import { assert } from "../../../index.js"
-import { ensureAssertionErrorWithMessage } from "../../ensureAssertionErrorWithMessage.js"
+import { assert } from "../../index.js"
+import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMessage.js"
+import { executeInNewContext } from "../executeInNewContext.js"
 
 {
   const actual = []
@@ -10,6 +11,12 @@ import { ensureAssertionErrorWithMessage } from "../../ensureAssertionErrorWithM
 {
   const actual = [0]
   const expected = [0]
+  assert({ actual, expected })
+}
+
+{
+  const actual = await executeInNewContext("[]")
+  const expected = []
   assert({ actual, expected })
 }
 
@@ -140,6 +147,44 @@ true
 false
 --- at ---
 value[Symbol()]`,
+    )
+  }
+}
+
+if (typeof window === "object") {
+  const actual = {}
+  const expected = []
+  try {
+    assert({ actual, expected })
+  } catch (e) {
+    ensureAssertionErrorWithMessage(
+      e,
+      `unequal prototypes.
+--- prototype found ---
+window.Object.prototype
+--- prototype expected ---
+window.Array.prototype
+--- at ---
+value[[Prototype]]`,
+    )
+  }
+}
+
+if (typeof global === "object") {
+  const actual = {}
+  const expected = []
+  try {
+    assert({ actual, expected })
+  } catch (e) {
+    ensureAssertionErrorWithMessage(
+      e,
+      `unequal prototypes.
+--- prototype found ---
+global.Object.prototype
+--- prototype expected ---
+global.Array.prototype
+--- at ---
+value[[Prototype]]`,
     )
   }
 }

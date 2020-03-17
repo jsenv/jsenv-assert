@@ -24,22 +24,6 @@ executeTestPlan({
         launch: launchNode,
       },
     },
-    "test/**/*.test.browser.js": {
-      chromium: {
-        launch: launchChromiumTab,
-      },
-      firefox: {
-        launch: launchFirefoxTab,
-      },
-      webkit: {
-        launch: launchWebkitTab,
-      },
-    },
-    "test/**/*.test.node.js": {
-      node: {
-        launch: launchNode,
-      },
-    },
   },
   coverage: process.argv.includes("--coverage"),
   completedExecutionLogMerging: true,

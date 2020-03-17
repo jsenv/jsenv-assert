@@ -1,5 +1,3 @@
-import { somePrototypeMatch } from "./somePrototypeMatch.js"
-
 export const isRegExp = (value) =>
   somePrototypeMatch(value, ({ constructor }) => constructor && constructor.name === "RegExp")
 
@@ -14,3 +12,12 @@ export const isSet = (value) =>
 
 export const isMap = (value) =>
   somePrototypeMatch(value, ({ constructor }) => constructor && constructor.name === "Map")
+
+export const somePrototypeMatch = (value, predicate) => {
+  let prototype = Object.getPrototypeOf(value)
+  while (prototype) {
+    if (predicate(prototype)) return true
+    prototype = Object.getPrototypeOf(prototype)
+  }
+  return false
+}

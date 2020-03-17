@@ -22,6 +22,11 @@ Opinionated test assertion.
   - [Failing on properties order](#Failing-on-properties-order)
   - [Failing on property configurability](#Failing-on-property-configurability)
 - [Why opinionated ?](#Why-opinionated-)
+  - [Properties order constraint](#Properties-order-constraint)
+  - [Flexible assertions](#Flexible-assertions)
+    - [Assert any value of a given type](#Assert-any-value-of-a-given-type)
+    - [Assert an other value](#Assert-an-other-value)
+    - [Assert without property order constraint](Assert-without-property-order-constraint)
 
 # Presentation
 
@@ -41,7 +46,7 @@ assert({ actual, expected })
 # Installation
 
 ```console
-npm install @jsenv/assert@2.0.2
+npm install @jsenv/assert
 ```
 
 ## Browser usage
@@ -290,64 +295,114 @@ As shown `assert` is strict on `actual` / `expected` comparison. It is designed 
 
 > Contract example: calling function named `whatever` returns value `{ answer: 42 }`.
 
-That being said you might need flexibility in your expectations. We could imagine pseudo code that would provide that flexibility and ensure only the value is a string or not an other value.
+## Properties order constraint
+
+The strongest contraints is that actual and expected must have the same properties order. In general code does not rely on properties order but it might be crucial.
 
 ```js
-assert({ actual: 11, expected: assert.not(10) })
-// or
-assert({ actual: "foo", expected: assert.any(String) })
+Object.keys({
+  foo: true,
+  bar: true,
+})[0] // "foo"
+
+Object.keys({
+  bar: true,
+  foo: true,
+})[0] // "bar"
 ```
 
-In order to keep `assert` simple and opinionated it does not provide such api. Instead we recommend to `assert` exactly what you want to get the level of flexbility you need.
+## Flexible assertions
 
-## any string
+Some tests requires flexibility in the assertions. In that case you can use `assert.any`, `assert.not` or pattern documented below.
 
-Expecting an object with a token property being any string.
+However helpers such as `assert.any` and `assert.not` comes with a cost: they are a new way of doing things. It means you need to learn them and decide when to use them. Because of this, every scenario comes with an **assert only solution**. These solution involves standard JavaScript and `assert` only to get the level of flexibility required.
+
+### Assert any value of a given type
+
+Let's say you have a `createSomething` function. You cannot control creationTime easily so you just want to ensure it's a number.
 
 ```js
-// assuming value is produced by an external function and produces a token randomly generated
-const value = {
-  whatever: 42,
-  token: "a-random-string",
+export const createSomething = () => {
+  return {
+    whatever: 42,
+    creationTime: Date.now(),
+  }
 }
-// first assert object looks correct being flexible on value.token
+```
+
+You can test it using `assert.any`:
+
+```js
+import { createSomething } from "./something.js"
+
 {
-  const actual = value
+  const actual = createSomething()
   const expected = {
     whatever: 42,
-    token: value.token,
+    token: assert.any(Number),
   }
   assert({ actual, expected })
 }
-// then assert value.token is a string
+```
+
+Or using only `assert`:
+
+```js
+import { createSomething } from "./something.js"
+
+const something = createSomething()
+
+// first assert something looks correct being flexible on user.token
 {
-  const actual = typeof value.token
-  const expected = "string"
+  const actual = user
+  const expected = {
+    whatever: 42,
+    creationTime: something.creationTime,
+  }
+  assert({ actual, expected })
+}
+// then assert something.creationTime is a number
+{
+  const actual = typeof something.creationTime
+  const expected = "number"
   assert({ actual, expected })
 }
 ```
 
-## any order
+### Assert an other value
 
-Expecting an object with any property order.
+You have a value and you want to test that it's not an other value.
+
+You can test this using `assert.not`:
 
 ```js
-// assuming value is produced by a function and you don't care about properties order
+// value is produced by an external function and you just want to assert it's not 42
+const value = 41
+const actual = value
+const expected = assert.not(42)
+assert({ actual, expected })
+```
+
+Or using only `assert`:
+
+```js
+const value = 41
+const actual = value !== 42
+const expected = true
+assert({ actual, expected })
+```
+
+### Assert without property order constraint
+
+You have an object and you don't care about the object properties order.
+
+In that case force the object property order by recreating it.
+
+```js
+// assuming you don't care about properties order
 const value = { foo: true, bar: true }
 // make actual an object with your own property order
 const actual = { bar: value.bar, foo: value.foo }
 const expected = { bar: true, foo: true }
-assert({ actual, expected })
-```
-
-## not something
-
-Expecting value not to be an other.
-
-```js
-// assuming value is produced by a function and you just want to assert it's not 42
-const value = 42
-const actual = value === 42
-const expected = false
 assert({ actual, expected })
 ```

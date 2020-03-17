@@ -32,8 +32,12 @@ export const comparisonToPath = (comparison, name = "value") => {
     if (type === "property-value") {
       return `${previous}${propertyToAccessorString(data)}`
     }
-    if (type === "map-entry") return `${previous}[[mapEntry:${data}]]`
-    if (type === "set-entry") return `${previous}[[setEntry:${data}]]`
+    if (type === "map-entry") {
+      return `${previous}[[mapEntry:${data}]]`
+    }
+    if (type === "set-entry") {
+      return `${previous}[[setEntry:${data}]]`
+    }
     if (type === "reference") {
       return `${previous}`
     }

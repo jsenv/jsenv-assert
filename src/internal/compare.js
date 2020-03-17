@@ -386,46 +386,17 @@ const comparePropertyDescriptor = (comparison, property, owner, options) => {
   })
   if (writableComparison.failed) return
 
-  if (isError(owner)) {
-    if (
-      // stack fails comparison but it's not important
-      property === "stack" ||
-      // firefox properties
-      property === "file" ||
-      property === "fileName" ||
-      property === "lineNumber" ||
-      property === "columnNumber" ||
-      // webkit properties
-      property === "line" ||
-      property === "column"
-    ) {
-      return
-    }
+  if (isError(owner) && isErrorPropertyIgnored(property)) {
+    return
   }
 
   if (typeof owner === "function") {
-    if (
-      owner.name === "RegExp" &&
-      [
-        "input",
-        "$_",
-        "lastMatch",
-        "$&",
-        "lastParen",
-        "$+",
-        "leftContext",
-        "$`",
-        "rightContext",
-        "$'",
-      ].includes(property)
-    ) {
+    if (owner.name === "RegExp" && isRegExpPropertyIgnored(property)) {
       return
     }
-
-    // function caller could differ but we want to ignore that
-    if (property === "caller") return
-    // function arguments could differ but we want to ignore that
-    if (property === "arguments") return
+    if (isFunctionPropertyIgnored(property)) {
+      return
+    }
   }
 
   const getComparison = subcompare(comparison, {
@@ -455,6 +426,49 @@ const comparePropertyDescriptor = (comparison, property, owner, options) => {
   })
   if (valueComparison.failed) return
 }
+
+const isRegExpPropertyIgnored = (name) => RegExpIgnoredProperties.includes(name)
+
+const isFunctionPropertyIgnored = (name) => functionIgnoredProperties.includes(name)
+
+const isErrorPropertyIgnored = (name) => errorIgnoredProperties.includes(name)
+
+// some regexp properties fails the comparison but that's expected
+// to my experience it happens only in webkit.
+// check https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Objets_globaux/RegExp/input
+// to see why these properties exists and would fail between each regex instance
+const RegExpIgnoredProperties = [
+  "input",
+  "$_",
+  "lastMatch",
+  "$&",
+  "lastParen",
+  "$+",
+  "leftContext",
+  "$`",
+  "rightContext",
+  "$'",
+]
+
+const functionIgnoredProperties = [
+  // function caller would fail comparison but that's expected
+  "caller",
+  // function arguments would fail comparison but that's expected
+  "arguments",
+]
+
+const errorIgnoredProperties = [
+  // stack fails comparison but it's not important
+  "stack",
+  // firefox properties that would fail comparison but that's expected
+  "file",
+  "fileName",
+  "lineNumber",
+  "columnNumber",
+  // webkit properties that would fail comparison but that's expected
+  "line",
+  "column",
+]
 
 const propertyToArrayIndex = (property) => {
   if (typeof property !== "string") return property

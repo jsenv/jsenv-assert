@@ -319,7 +319,7 @@ However helpers such as `assert.any` and `assert.not` comes with a cost: they ar
 
 ### Assert any value of a given type
 
-Let's say you have a `createSomething` function. You cannot control creationTime easily so you just want to ensure it's a number.
+Let's say you have a function returning an object. You cannot control the object creationTime easily so you just want to ensure it's a number.
 
 ```js
 export const createSomething = () => {
@@ -352,7 +352,7 @@ import { createSomething } from "./something.js"
 
 const something = createSomething()
 
-// first assert something looks correct being flexible on user.token
+// first assert it looks correct being flexible on creationTime
 {
   const actual = user
   const expected = {
@@ -361,7 +361,7 @@ const something = createSomething()
   }
   assert({ actual, expected })
 }
-// then assert something.creationTime is a number
+// then assert creationTime is a number
 {
   const actual = typeof something.creationTime
   const expected = "number"

@@ -8,6 +8,7 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
 }
 
 {
+  // eslint-disable-next-line no-inner-declarations
   function get() {
     return 1
   }
@@ -32,6 +33,7 @@ value.foo[[Get]]`,
 }
 
 {
+  // eslint-disable-next-line no-inner-declarations
   function get() {
     return 1
   }

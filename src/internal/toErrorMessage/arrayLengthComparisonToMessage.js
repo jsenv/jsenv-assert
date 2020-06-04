@@ -1,4 +1,6 @@
+import { inspect } from "@jsenv/inspect"
 import { comparisonToPath } from "../comparisonToPath.js"
+import { createDetailedMessage } from "./createDetailedMessage.js"
 import { isArray } from "../object-subtype.js"
 
 export const arrayLengthComparisonToMessage = (comparison) => {
@@ -9,22 +11,28 @@ export const arrayLengthComparisonToMessage = (comparison) => {
   const grandParentComparison = parentComparison.parent
   if (!isArray(grandParentComparison.actual)) return undefined
 
-  if (comparison.actual > comparison.expected) return createBiggerThanExpectedMessage(comparison)
-  return createSmallerThanExpectedMessage(comparison)
+  const actualArray = grandParentComparison.actual
+  const expectedArray = grandParentComparison.expected
+  const actualLength = comparison.actual
+  const expectedLength = comparison.expected
+  const path = comparisonToPath(grandParentComparison)
+
+  if (actualLength < expectedLength) {
+    const missingValues = expectedArray.slice(actualLength)
+
+    return createDetailedMessage(`an array is smaller than expected.`, {
+      "array length found": actualLength,
+      "array length expected": expectedLength,
+      "missing values": inspect(missingValues),
+      "at": path,
+    })
+  }
+
+  const extraValues = actualArray.slice(expectedLength)
+  return createDetailedMessage(`an array is bigger than expected.`, {
+    "array length found": actualLength,
+    "array length expected": expectedLength,
+    "extra values": inspect(extraValues),
+    "at": path,
+  })
 }
-
-const createBiggerThanExpectedMessage = (comparison) => `an array is bigger than expected.
---- array length found ---
-${comparison.actual}
---- array length expected ---
-${comparison.expected}
---- at ---
-${comparisonToPath(comparison.parent.parent)}`
-
-const createSmallerThanExpectedMessage = (comparison) => `an array is smaller than expected.
---- array length found ---
-${comparison.actual}
---- array length expected ---
-${comparison.expected}
---- at ---
-${comparisonToPath(comparison.parent.parent)}`

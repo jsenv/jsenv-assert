@@ -9,6 +9,7 @@ import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMess
 }
 
 {
+  // eslint-disable-next-line no-inner-declarations
   function set() {}
   const actual = Object.defineProperty({}, "foo", {})
   const expected = Object.defineProperty({}, "foo", { set })
@@ -29,6 +30,7 @@ value.foo[[Set]]`,
 }
 
 {
+  // eslint-disable-next-line no-inner-declarations
   function set() {}
   const actual = Object.defineProperty({}, "foo", { set })
   const expected = Object.defineProperty({}, "foo", {})

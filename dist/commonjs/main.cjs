@@ -96,17 +96,6 @@ const getPrevious = comparison => {
   return parent;
 };
 
-const somePrototypeMatch = (value, predicate) => {
-  let prototype = Object.getPrototypeOf(value);
-
-  while (prototype) {
-    if (predicate(prototype)) return true;
-    prototype = Object.getPrototypeOf(prototype);
-  }
-
-  return false;
-};
-
 const isRegExp = value => somePrototypeMatch(value, ({
   constructor
 }) => constructor && constructor.name === "RegExp");
@@ -122,8 +111,17 @@ const isSet = value => somePrototypeMatch(value, ({
 const isMap = value => somePrototypeMatch(value, ({
   constructor
 }) => constructor && constructor.name === "Map");
+const somePrototypeMatch = (value, predicate) => {
+  let prototype = Object.getPrototypeOf(value);
 
-/* eslint-disable no-use-before-define */
+  while (prototype) {
+    if (predicate(prototype)) return true;
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  return false;
+};
+
 const compare = ({
   actual,
   expected
@@ -139,6 +137,47 @@ const compare = ({
     anyOrder
   });
   return comparison;
+};
+const expectationSymbol = Symbol.for("expectation");
+
+const createExpectation = data => {
+  return {
+    [expectationSymbol]: true,
+    data
+  };
+};
+
+const createNotExpectation = value => {
+  return createExpectation({
+    type: "not",
+    expected: value,
+    comparer: ({
+      actual
+    }) => {
+      if (isNegativeZero(value)) {
+        return !isNegativeZero(actual);
+      }
+
+      if (isNegativeZero(actual)) {
+        return !isNegativeZero(value);
+      }
+
+      return actual !== value;
+    }
+  });
+};
+const createAnyExpectation = expectedConstructor => {
+  return createExpectation({
+    type: "any",
+    expected: expectedConstructor,
+    comparer: ({
+      actual
+    }) => {
+      return somePrototypeMatch(actual, ({
+        constructor
+      }) => constructor && (constructor === expectedConstructor || constructor.name === expectedConstructor.name));
+    }
+  });
 };
 
 const createComparison = ({
@@ -159,6 +198,14 @@ const defaultComparer = (comparison, options) => {
     actual,
     expected
   } = comparison;
+
+  if (typeof expected === "object" && expected !== null && expectationSymbol in expected) {
+    subcompare(comparison, { ...expected.data,
+      actual,
+      options
+    });
+    return !comparison.failed;
+  }
 
   if (isPrimitive(expected) || isPrimitive(actual)) {
     compareIdentity(comparison, options);
@@ -499,20 +546,18 @@ const comparePropertyDescriptor = (comparison, property, owner, options) => {
   });
   if (writableComparison.failed) return;
 
-  if (isError(owner)) {
-    if ( // stack fails comparison but it's not important
-    property === "stack" || // firefox properties
-    property === "file" || property === "lineNumber" || property === "columnNumber" || // webkit properties
-    property === "line" || property === "column") {
-      return;
-    }
+  if (isError(owner) && isErrorPropertyIgnored(property)) {
+    return;
   }
 
   if (typeof owner === "function") {
-    // function caller could differ but we want to ignore that
-    if (property === "caller") return; // function arguments could differ but we want to ignore that
+    if (owner.name === "RegExp" && isRegExpPropertyIgnored(property)) {
+      return;
+    }
 
-    if (property === "arguments") return;
+    if (isFunctionPropertyIgnored(property)) {
+      return;
+    }
   }
 
   const getComparison = subcompare(comparison, {
@@ -540,6 +585,25 @@ const comparePropertyDescriptor = (comparison, property, owner, options) => {
   });
   if (valueComparison.failed) return;
 };
+
+const isRegExpPropertyIgnored = name => RegExpIgnoredProperties.includes(name);
+
+const isFunctionPropertyIgnored = name => functionIgnoredProperties.includes(name);
+
+const isErrorPropertyIgnored = name => errorIgnoredProperties.includes(name); // some regexp properties fails the comparison but that's expected
+// to my experience it happens only in webkit.
+// check https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Objets_globaux/RegExp/input
+// to see why these properties exists and would fail between each regex instance
+
+
+const RegExpIgnoredProperties = ["input", "$_", "lastMatch", "$&", "lastParen", "$+", "leftContext", "$`", "rightContext", "$'"];
+const functionIgnoredProperties = [// function caller would fail comparison but that's expected
+"caller", // function arguments would fail comparison but that's expected
+"arguments"];
+const errorIgnoredProperties = [// stack fails comparison but it's not important
+"stack", // firefox properties that would fail comparison but that's expected
+"file", "fileName", "lineNumber", "columnNumber", // webkit properties that would fail comparison but that's expected
+"line", "column"];
 
 const propertyToArrayIndex = property => {
   if (typeof property !== "string") return property;
@@ -1280,8 +1344,13 @@ const comparisonToPath = (comparison, name = "value") => {
       return `${previous}${propertyToAccessorString(data)}`;
     }
 
-    if (type === "map-entry") return `${previous}[[mapEntry:${data}]]`;
-    if (type === "set-entry") return `${previous}[[setEntry:${data}]]`;
+    if (type === "map-entry") {
+      return `${previous}[[mapEntry:${data}]]`;
+    }
+
+    if (type === "set-entry") {
+      return `${previous}[[setEntry:${data}]]`;
+    }
 
     if (type === "reference") {
       return `${previous}`;
@@ -1323,7 +1392,11 @@ const comparisonToPath = (comparison, name = "value") => {
       return `${previous}.valueOf()`;
     }
 
-    if (type === "identity") {
+    if (type === "identity" || type === "not") {
+      return previous;
+    }
+
+    if (type === "any") {
       return previous;
     }
 
@@ -1406,6 +1479,30 @@ if (typeof window === "object") {
 const valueToString = value => {
   return valueToWellKnown(value) || inspect(value);
 };
+
+const anyComparisonToErrorMessage = comparison => {
+  if (comparison.type !== "any") return undefined;
+  const path = comparisonToPath(comparison);
+  const actualValue = valueToString(comparison.actual);
+  const expectedConstructor = comparison.expected;
+  return createAnyMessage({
+    path,
+    expectedConstructor,
+    actualValue
+  });
+};
+
+const createAnyMessage = ({
+  path,
+  expectedConstructor,
+  actualValue
+}) => `unexpected value.
+--- found ---
+${actualValue}
+--- expected ---
+any(${expectedConstructor.name})
+--- at ---
+${path}`;
 
 const defaultComparisonToErrorMessage = comparison => {
   const path = comparisonToPath(comparison);
@@ -1578,71 +1675,81 @@ ${expectedPrototype}
 --- at ---
 ${path}`;
 
-const propertiesComparisonToErrorMessage = comparison => {
-  if (comparison.type !== "properties") return undefined;
-  const path = comparisonToPath(comparison);
-  const extra = comparison.actual.extra;
-  const missing = comparison.actual.missing;
-  const hasExtra = extra.length > 0;
-  const hasMissing = missing.length > 0;
-
-  if (hasExtra && !hasMissing) {
-    return createUnexpectedPropertiesMessage({
-      path,
-      unexpectedProperties: propertyNameArrayToString(extra)
-    });
-  }
-
-  if (!hasExtra && hasMissing) {
-    return createMissingPropertiesMessage({
-      path,
-      missingProperties: propertyNameArrayToString(missing)
-    });
-  }
-
-  return createUnexpectedAndMissingPropertiesMessage({
-    path,
-    unexpectedProperties: propertyNameArrayToString(extra),
-    missingProperties: propertyNameArrayToString(missing)
+const createDetailedMessage = (message, details = {}) => {
+  let string = `${message}`;
+  Object.keys(details).forEach(key => {
+    const value = details[key];
+    string += `
+--- ${key} ---
+${Array.isArray(value) ? value.join(`
+`) : value}`;
   });
+  return string;
 };
 
-const createUnexpectedPropertiesMessage = ({
-  path,
-  unexpectedProperties
-}) => `unexpected properties.
---- unexpected property names ---
-${unexpectedProperties.join(`
-`)}
---- at ---
-${path}`;
+const propertiesComparisonToErrorMessage = comparison => {
+  if (comparison.type !== "properties") return undefined;
+  const path = comparisonToPath(comparison.parent);
+  const missing = comparison.actual.missing;
+  const extra = comparison.actual.extra;
+  const missingCount = missing.length;
+  const extraCount = extra.length;
+  const unexpectedProperties = {};
+  extra.forEach(propertyName => {
+    unexpectedProperties[propertyName] = comparison.parent.actual[propertyName];
+  });
+  const missingProperties = {};
+  missing.forEach(propertyName => {
+    missingProperties[propertyName] = comparison.parent.expected[propertyName];
+  });
 
-const createMissingPropertiesMessage = ({
-  path,
-  missingProperties
-}) => `missing properties.
---- missing property names ---
-${missingProperties.join(`
-`)}
---- at ---
-${path}`;
+  if (missingCount === 1 && extraCount === 0) {
+    return createDetailedMessage("1 missing property.", {
+      "missing property": inspect(missingProperties),
+      "at": path
+    });
+  }
 
-const createUnexpectedAndMissingPropertiesMessage = ({
-  path,
-  unexpectedProperties,
-  missingProperties
-}) => `unexpected and missing properties.
---- unexpected property names ---
-${unexpectedProperties.join(`
-`)}
---- missing property names ---
-${missingProperties.join(`
-`)}
---- at ---
-${path}`;
+  if (missingCount > 1 && extraCount === 0) {
+    return createDetailedMessage(`${missing} missing properties.`, {
+      "missing properties": inspect(unexpectedProperties),
+      "at": path
+    });
+  }
 
-const propertyNameArrayToString = propertyNameArray => {
-  return propertyNameArray.map(propertyName => inspect(propertyName));
+  if (missingCount === 0 && extraCount === 1) {
+    return createDetailedMessage(`1 unexpected property.`, {
+      "unexpected property": inspect(unexpectedProperties),
+      "at": path
+    });
+  }
+
+  if (missingCount === 0 && extraCount > 1) {
+    return createDetailedMessage(`${extraCount} unexpected properties.`, {
+      "unexpected properties": inspect(unexpectedProperties),
+      "at": path
+    });
+  }
+
+  let message = "";
+
+  if (missingCount === 1) {
+    message += `1 missing property`;
+  } else {
+    message += `${missingCount} missing properties`;
+  }
+
+  if (extraCount === 1) {
+    message += ` and 1 unexpected property.`;
+  } else {
+    message += ` and ${extraCount} unexpected properties.`;
+  }
+
+  return createDetailedMessage(message, {
+    [missingCount === 1 ? "missing property" : "missing properties"]: inspect(missingProperties),
+    [extraCount === 1 ? "unexpected property" : "unexpected properties"]: inspect(unexpectedProperties),
+    at: path
+  });
 };
 
 const propertiesOrderComparisonToErrorMessage = comparison => {
@@ -1652,8 +1759,8 @@ const propertiesOrderComparisonToErrorMessage = comparison => {
   const actual = comparison.actual;
   return createUnexpectedPropertiesOrderMessage({
     path,
-    expectedPropertiesOrder: propertyNameArrayToString$1(expected),
-    actualPropertiesOrder: propertyNameArrayToString$1(actual)
+    expectedPropertiesOrder: propertyNameArrayToString(expected),
+    actualPropertiesOrder: propertyNameArrayToString(actual)
   });
 };
 
@@ -1671,7 +1778,7 @@ ${expectedPropertiesOrder.join(`
 --- at ---
 ${path}`;
 
-const propertyNameArrayToString$1 = propertyNameArray => {
+const propertyNameArrayToString = propertyNameArray => {
   return propertyNameArray.map(propertyName => inspect(propertyName));
 };
 
@@ -1822,6 +1929,27 @@ ${valueToString(comparison.expected.value)}
 --- at ---
 ${comparisonToPath(comparison.parent)}`;
 
+const notComparisonToErrorMessage = comparison => {
+  if (comparison.type !== "not") return undefined;
+  const path = comparisonToPath(comparison);
+  const actualValue = valueToString(comparison.actual);
+  return createNotMessage({
+    path,
+    actualValue
+  });
+};
+
+const createNotMessage = ({
+  path,
+  actualValue
+}) => `unexpected value.
+--- found ---
+${actualValue}
+--- expected ---
+an other value
+--- at ---
+${path}`;
+
 const arrayLengthComparisonToMessage = comparison => {
   if (comparison.type !== "identity") return undefined;
   const parentComparison = comparison.parent;
@@ -1829,30 +1957,35 @@ const arrayLengthComparisonToMessage = comparison => {
   if (parentComparison.data !== "length") return undefined;
   const grandParentComparison = parentComparison.parent;
   if (!isArray(grandParentComparison.actual)) return undefined;
-  if (comparison.actual > comparison.expected) return createBiggerThanExpectedMessage$1(comparison);
-  return createSmallerThanExpectedMessage$1(comparison);
+  const actualArray = grandParentComparison.actual;
+  const expectedArray = grandParentComparison.expected;
+  const actualLength = comparison.actual;
+  const expectedLength = comparison.expected;
+  const path = comparisonToPath(grandParentComparison);
+
+  if (actualLength < expectedLength) {
+    const missingValues = expectedArray.slice(actualLength);
+    return createDetailedMessage(`an array is smaller than expected.`, {
+      "array length found": actualLength,
+      "array length expected": expectedLength,
+      "missing values": inspect(missingValues),
+      "at": path
+    });
+  }
+
+  const extraValues = actualArray.slice(expectedLength);
+  return createDetailedMessage(`an array is bigger than expected.`, {
+    "array length found": actualLength,
+    "array length expected": expectedLength,
+    "extra values": inspect(extraValues),
+    "at": path
+  });
 };
-
-const createBiggerThanExpectedMessage$1 = comparison => `an array is bigger than expected.
---- array length found ---
-${comparison.actual}
---- array length expected ---
-${comparison.expected}
---- at ---
-${comparisonToPath(comparison.parent.parent)}`;
-
-const createSmallerThanExpectedMessage$1 = comparison => `an array is smaller than expected.
---- array length found ---
-${comparison.actual}
---- array length expected ---
-${comparison.expected}
---- at ---
-${comparisonToPath(comparison.parent.parent)}`;
 
 /* eslint-disable import/max-dependencies */
 const comparisonToErrorMessage = comparison => {
   const failedComparison = deepestComparison(comparison);
-  return firstFunctionReturningSomething([mapEntryComparisonToErrorMessage, prototypeComparisonToErrorMessage, referenceComparisonToErrorMessage, propertiesComparisonToErrorMessage, propertiesOrderComparisonToErrorMessage, symbolsComparisonToErrorMessage, symbolsOrderComparisonToErrorMessage, setSizeComparisonToMessage, arrayLengthComparisonToMessage], failedComparison) || defaultComparisonToErrorMessage(failedComparison);
+  return firstFunctionReturningSomething([anyComparisonToErrorMessage, mapEntryComparisonToErrorMessage, notComparisonToErrorMessage, prototypeComparisonToErrorMessage, referenceComparisonToErrorMessage, propertiesComparisonToErrorMessage, propertiesOrderComparisonToErrorMessage, symbolsComparisonToErrorMessage, symbolsOrderComparisonToErrorMessage, setSizeComparisonToMessage, arrayLengthComparisonToMessage], failedComparison) || defaultComparisonToErrorMessage(failedComparison);
 };
 
 const deepestComparison = comparison => {
@@ -1915,6 +2048,14 @@ const assert = (...args) => {
 
   return _assert(...args);
 };
+
+assert.not = value => {
+  return createNotExpectation(value);
+};
+
+assert.any = Constructor => {
+  return createAnyExpectation(Constructor);
+};
 /*
  * anyOrder is not documented because ../readme.md#Why-opinionated-
  * but I feel like the property order comparison might be too strict
@@ -1933,6 +2074,7 @@ const assert = (...args) => {
  * const expected = sortProperties({ foo: true, bar: true })
  s*
  */
+
 
 const _assert = ({
   actual,

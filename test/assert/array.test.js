@@ -31,7 +31,7 @@ import { executeInNewContext } from "../executeInNewContext.js"
 }
 
 {
-  const actual = []
+  const actual = [0]
   const expected = [0, 1]
   try {
     assert({ actual, expected })
@@ -40,9 +40,13 @@ import { executeInNewContext } from "../executeInNewContext.js"
       e,
       `an array is smaller than expected.
 --- array length found ---
-0
+1
 --- array length expected ---
 2
+--- missing values ---
+[
+  1
+]
 --- at ---
 value`,
     )
@@ -51,7 +55,7 @@ value`,
 
 {
   const actual = [0, 1]
-  const expected = []
+  const expected = [0]
   try {
     assert({ actual, expected })
   } catch (e) {
@@ -61,7 +65,11 @@ value`,
 --- array length found ---
 2
 --- array length expected ---
-0
+1
+--- extra values ---
+[
+  1
+]
 --- at ---
 value`,
     )

@@ -10,8 +10,93 @@ var __jsenv_assert__ = function (exports) {
   };
 
   var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? nativeTypeOf : customTypeOf;
+  /* eslint-disable no-eq-null, eqeqeq */
 
-  var defineProperty = function (obj, key, value) {
+
+  function arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
+    var arr2 = new Array(len);
+
+    for (var i = 0; i < len; i++) {
+      arr2[i] = arr[i];
+    }
+
+    return arr2;
+  }
+  /* eslint-disable consistent-return */
+
+
+  function unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === "string") return arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === "Object" && o.constructor) n = o.constructor.name;
+    if (n === "Map" || n === "Set") return Array.from(n);
+    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
+  }
+  /* eslint-disable eqeqeq, no-eq-null */
+  // n: next
+  // e: error (called whenever something throws)
+  // f: finish (always called at the end)
+
+
+  function createForOfIteratorHelper(o) {
+    if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
+      // Fallback for engines without symbol support
+      if (Array.isArray(o) || (o = unsupportedIterableToArray(o))) {
+        var i = 0;
+
+        var F = function F() {};
+
+        return {
+          s: F,
+          n: function n() {
+            if (i >= o.length) return {
+              done: true
+            };
+            return {
+              done: false,
+              value: o[i++]
+            };
+          },
+          e: function e(_e) {
+            throw _e;
+          },
+          f: F
+        };
+      }
+
+      throw new TypeError("Invalid attempt to iterate non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+    }
+
+    var it;
+    var normalCompletion = true;
+    var didErr = false;
+    var err;
+    return {
+      s: function s() {
+        it = o[Symbol.iterator]();
+      },
+      n: function n() {
+        var step = it.next();
+        normalCompletion = step.done;
+        return step;
+      },
+      e: function e(_e2) {
+        didErr = true;
+        err = _e2;
+      },
+      f: function f() {
+        try {
+          if (!normalCompletion && it.return != null) it.return();
+        } finally {
+          if (didErr) throw err;
+        }
+      }
+    };
+  }
+
+  var _defineProperty = function (obj, key, value) {
     // Shortcircuit the slow defineProperty path when possible.
     // We are trying to avoid issues where setters defined on the
     // prototype cause side effects under the fast path of simple
@@ -39,7 +124,7 @@ var __jsenv_assert__ = function (exports) {
       if (i % 2) {
         // eslint-disable-next-line no-loop-func
         ownKeys(Object(source), true).forEach(function (key) {
-          defineProperty(target, key, source[key]);
+          _defineProperty(target, key, source[key]);
         });
       } else if (Object.getOwnPropertyDescriptors) {
         Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
@@ -202,17 +287,6 @@ var __jsenv_assert__ = function (exports) {
     return parent;
   };
 
-  var somePrototypeMatch = function somePrototypeMatch(value, predicate) {
-    var prototype = Object.getPrototypeOf(value);
-
-    while (prototype) {
-      if (predicate(prototype)) return true;
-      prototype = Object.getPrototypeOf(prototype);
-    }
-
-    return false;
-  };
-
   var isRegExp = function isRegExp(value) {
     return somePrototypeMatch(value, function (_ref) {
       var constructor = _ref.constructor;
@@ -248,6 +322,17 @@ var __jsenv_assert__ = function (exports) {
     });
   };
 
+  var somePrototypeMatch = function somePrototypeMatch(value, predicate) {
+    var prototype = Object.getPrototypeOf(value);
+
+    while (prototype) {
+      if (predicate(prototype)) return true;
+      prototype = Object.getPrototypeOf(prototype);
+    }
+
+    return false;
+  };
+
   var compare = function compare(_ref, _ref2) {
     var actual = _ref.actual,
         expected = _ref.expected;
@@ -263,12 +348,54 @@ var __jsenv_assert__ = function (exports) {
     return comparison;
   };
 
-  var createComparison = function createComparison(_ref3) {
-    var _ref3$parent = _ref3.parent,
-        parent = _ref3$parent === void 0 ? null : _ref3$parent,
-        _ref3$children = _ref3.children,
-        children = _ref3$children === void 0 ? [] : _ref3$children,
-        rest = _objectWithoutProperties(_ref3, ["parent", "children"]);
+  var expectationSymbol = Symbol.for("expectation");
+
+  var createExpectation = function createExpectation(data) {
+    var _ref3;
+
+    return _ref3 = {}, _defineProperty(_ref3, expectationSymbol, true), _defineProperty(_ref3, "data", data), _ref3;
+  };
+
+  var createNotExpectation = function createNotExpectation(value) {
+    return createExpectation({
+      type: "not",
+      expected: value,
+      comparer: function comparer(_ref4) {
+        var actual = _ref4.actual;
+
+        if (isNegativeZero(value)) {
+          return !isNegativeZero(actual);
+        }
+
+        if (isNegativeZero(actual)) {
+          return !isNegativeZero(value);
+        }
+
+        return actual !== value;
+      }
+    });
+  };
+
+  var createAnyExpectation = function createAnyExpectation(expectedConstructor) {
+    return createExpectation({
+      type: "any",
+      expected: expectedConstructor,
+      comparer: function comparer(_ref5) {
+        var actual = _ref5.actual;
+        return somePrototypeMatch(actual, function (_ref6) {
+          var constructor = _ref6.constructor;
+          return constructor && (constructor === expectedConstructor || constructor.name === expectedConstructor.name);
+        });
+      }
+    });
+  };
+
+  var createComparison = function createComparison(_ref7) {
+    var _ref7$parent = _ref7.parent,
+        parent = _ref7$parent === void 0 ? null : _ref7$parent,
+        _ref7$children = _ref7.children,
+        children = _ref7$children === void 0 ? [] : _ref7$children,
+        rest = _objectWithoutProperties(_ref7, ["parent", "children"]);
 
     var comparison = _objectSpread({
       parent: parent,
@@ -281,6 +408,14 @@ var __jsenv_assert__ = function (exports) {
   var defaultComparer = function defaultComparer(comparison, options) {
     var actual = comparison.actual,
         expected = comparison.expected;
+
+    if (_typeof(expected) === "object" && expected !== null && expectationSymbol in expected) {
+      subcompare(comparison, _objectSpread({}, expected.data, {
+        actual: actual,
+        options: options
+      }));
+      return !comparison.failed;
+    }
 
     if (isPrimitive(expected) || isPrimitive(actual)) {
       compareIdentity(comparison, options);
@@ -311,9 +446,9 @@ var __jsenv_assert__ = function (exports) {
           return referenceComparisonCandidate !== comparison && referenceComparisonCandidate.actual === comparison.actual;
         }),
         expected: expectedReference,
-        comparer: function comparer(_ref4) {
-          var actual = _ref4.actual,
-              expected = _ref4.expected;
+        comparer: function comparer(_ref8) {
+          var actual = _ref8.actual,
+              expected = _ref8.expected;
           return actual === expected;
         },
         options: options
@@ -389,14 +524,14 @@ var __jsenv_assert__ = function (exports) {
     return true;
   };
 
-  var subcompare = function subcompare(comparison, _ref5) {
-    var type = _ref5.type,
-        data = _ref5.data,
-        actual = _ref5.actual,
-        expected = _ref5.expected,
-        _ref5$comparer = _ref5.comparer,
-        comparer = _ref5$comparer === void 0 ? defaultComparer : _ref5$comparer,
-        options = _ref5.options;
+  var subcompare = function subcompare(comparison, _ref9) {
+    var type = _ref9.type,
+        data = _ref9.data,
+        actual = _ref9.actual,
+        expected = _ref9.expected,
+        _ref9$comparer = _ref9.comparer,
+        comparer = _ref9$comparer === void 0 ? defaultComparer : _ref9$comparer,
+        options = _ref9.options;
     var subcomparison = createComparison({
       type: type,
       data: data,
@@ -457,9 +592,9 @@ var __jsenv_assert__ = function (exports) {
       type: "extensibility",
       actual: Object.isExtensible(comparison.actual) ? "extensible" : "non-extensible",
       expected: Object.isExtensible(comparison.expected) ? "extensible" : "non-extensible",
-      comparer: function comparer(_ref6) {
-        var actual = _ref6.actual,
-            expected = _ref6.expected;
+      comparer: function comparer(_ref10) {
+        var actual = _ref10.actual,
+            expected = _ref10.expected;
         return actual === expected;
       },
       options: options
@@ -472,9 +607,9 @@ var __jsenv_assert__ = function (exports) {
       type: "integrity",
       actual: getIntegriy(comparison.actual),
       expected: getIntegriy(comparison.expected),
-      comparer: function comparer(_ref7) {
-        var actual = _ref7.actual,
-            expected = _ref7.expected;
+      comparer: function comparer(_ref11) {
+        var actual = _ref11.actual,
+            expected = _ref11.expected;
         return actual === expected;
       },
       options: options
@@ -583,29 +718,19 @@ var __jsenv_assert__ = function (exports) {
     var expected = comparison.expected;
     var expectedPropertyNames = Object.getOwnPropertyNames(expected); // eslint-disable-next-line no-unused-vars
 
-    var _iteratorNormalCompletion = true;
-    var _didIteratorError = false;
-    var _iteratorError = undefined;
+    var _iterator = createForOfIteratorHelper(expectedPropertyNames),
+        _step;
 
     try {
-      for (var _iterator = expectedPropertyNames[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-        var _expectedPropertyName = _step.value;
-        comparePropertyDescriptor(comparison, _expectedPropertyName, expected, options);
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var expectedPropertyName = _step.value;
+        comparePropertyDescriptor(comparison, expectedPropertyName, expected, options);
         if (comparison.failed) break;
       }
     } catch (err) {
-      _didIteratorError = true;
-      _iteratorError = err;
+      _iterator.e(err);
     } finally {
-      try {
-        if (!_iteratorNormalCompletion && _iterator.return != null) {
-          _iterator.return();
-        }
-      } finally {
-        if (_didIteratorError) {
-          throw _iteratorError;
-        }
-      }
+      _iterator.f();
     }
   };
 
@@ -613,29 +738,19 @@ var __jsenv_assert__ = function (exports) {
     var expected = comparison.expected;
     var expectedSymbols = Object.getOwnPropertySymbols(expected); // eslint-disable-next-line no-unused-vars
 
-    var _iteratorNormalCompletion2 = true;
-    var _didIteratorError2 = false;
-    var _iteratorError2 = undefined;
+    var _iterator2 = createForOfIteratorHelper(expectedSymbols),
+        _step2;
 
     try {
-      for (var _iterator2 = expectedSymbols[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-        var _expectedSymbol = _step2.value;
-        comparePropertyDescriptor(comparison, _expectedSymbol, expected, options);
+      for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        var expectedSymbol = _step2.value;
+        comparePropertyDescriptor(comparison, expectedSymbol, expected, options);
         if (comparison.failed) break;
       }
     } catch (err) {
-      _didIteratorError2 = true;
-      _iteratorError2 = err;
+      _iterator2.e(err);
     } finally {
-      try {
-        if (!_iteratorNormalCompletion2 && _iterator2.return != null) {
-          _iterator2.return();
-        }
-      } finally {
-        if (_didIteratorError2) {
-          throw _iteratorError2;
-        }
-      }
+      _iterator2.f();
     }
   };
 
@@ -650,9 +765,9 @@ var __jsenv_assert__ = function (exports) {
       data: property,
       actual: actualDescriptor.configurable ? "configurable" : "non-configurable",
       expected: expectedDescriptor.configurable ? "configurable" : "non-configurable",
-      comparer: function comparer(_ref8) {
-        var actual = _ref8.actual,
-            expected = _ref8.expected;
+      comparer: function comparer(_ref12) {
+        var actual = _ref12.actual,
+            expected = _ref12.expected;
         return actual === expected;
       },
       options: options
@@ -663,9 +778,9 @@ var __jsenv_assert__ = function (exports) {
       data: property,
       actual: actualDescriptor.enumerable ? "enumerable" : "non-enumerable",
       expected: expectedDescriptor.enumerable ? "enumerable" : "non-enumerable",
-      comparer: function comparer(_ref9) {
-        var actual = _ref9.actual,
-            expected = _ref9.expected;
+      comparer: function comparer(_ref13) {
+        var actual = _ref13.actual,
+            expected = _ref13.expected;
         return actual === expected;
       },
       options: options
@@ -676,29 +791,27 @@ var __jsenv_assert__ = function (exports) {
       data: property,
       actual: actualDescriptor.writable ? "writable" : "non-writable",
       expected: expectedDescriptor.writable ? "writable" : "non-writable",
-      comparer: function comparer(_ref10) {
-        var actual = _ref10.actual,
-            expected = _ref10.expected;
+      comparer: function comparer(_ref14) {
+        var actual = _ref14.actual,
+            expected = _ref14.expected;
         return actual === expected;
       },
       options: options
     });
     if (writableComparison.failed) return;
 
-    if (isError(owner)) {
-      if ( // stack fails comparison but it's not important
-      property === "stack" || // firefox properties
-      property === "file" || property === "lineNumber" || property === "columnNumber" || // webkit properties
-      property === "line" || property === "column") {
-        return;
-      }
+    if (isError(owner) && isErrorPropertyIgnored(property)) {
+      return;
     }
 
     if (typeof owner === "function") {
-      // function caller could differ but we want to ignore that
-      if (property === "caller") return; // function arguments could differ but we want to ignore that
+      if (owner.name === "RegExp" && isRegExpPropertyIgnored(property)) {
+        return;
+      }
 
-      if (property === "arguments") return;
+      if (isFunctionPropertyIgnored(property)) {
+        return;
+      }
     }
 
     var getComparison = subcompare(comparison, {
@@ -726,6 +839,31 @@ var __jsenv_assert__ = function (exports) {
     });
     if (valueComparison.failed) return;
   };
+
+  var isRegExpPropertyIgnored = function isRegExpPropertyIgnored(name) {
+    return RegExpIgnoredProperties.includes(name);
+  };
+
+  var isFunctionPropertyIgnored = function isFunctionPropertyIgnored(name) {
+    return functionIgnoredProperties.includes(name);
+  };
+
+  var isErrorPropertyIgnored = function isErrorPropertyIgnored(name) {
+    return errorIgnoredProperties.includes(name);
+  }; // some regexp properties fails the comparison but that's expected
+  // to my experience it happens only in webkit.
+  // check https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Objets_globaux/RegExp/input
+  // to see why these properties exists and would fail between each regex instance
+
+
+  var RegExpIgnoredProperties = ["input", "$_", "lastMatch", "$&", "lastParen", "$+", "leftContext", "$`", "rightContext", "$'"];
+  var functionIgnoredProperties = [// function caller would fail comparison but that's expected
+  "caller", // function arguments would fail comparison but that's expected
+  "arguments"];
+  var errorIgnoredProperties = [// stack fails comparison but it's not important
+  "stack", // firefox properties that would fail comparison but that's expected
+  "file", "fileName", "lineNumber", "columnNumber", // webkit properties that would fail comparison but that's expected
+  "line", "column"];
 
   var propertyToArrayIndex = function propertyToArrayIndex(property) {
     if (typeof property !== "string") return property;
@@ -755,39 +893,29 @@ var __jsenv_assert__ = function (exports) {
     }); // first check actual entries match expected entries
     // eslint-disable-next-line no-unused-vars
 
-    var _iteratorNormalCompletion3 = true;
-    var _didIteratorError3 = false;
-    var _iteratorError3 = undefined;
+    var _iterator3 = createForOfIteratorHelper(actualEntries),
+        _step3;
 
     try {
-      for (var _iterator3 = actualEntries[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-        var _actualEntry = _step3.value;
-        var _expectedEntry = expectedEntries[_actualEntry.index];
+      for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+        var actualEntry = _step3.value;
+        var expectedEntry = expectedEntries[actualEntry.index];
 
-        if (_expectedEntry) {
+        if (expectedEntry) {
           var entryComparison = subcompare(comparison, {
             type: "set-entry",
-            data: _actualEntry.index,
-            actual: _actualEntry.value,
-            expected: _expectedEntry.value,
+            data: actualEntry.index,
+            actual: actualEntry.value,
+            expected: expectedEntry.value,
             options: options
           });
           if (entryComparison.failed) return;
         }
       }
     } catch (err) {
-      _didIteratorError3 = true;
-      _iteratorError3 = err;
+      _iterator3.e(err);
     } finally {
-      try {
-        if (!_iteratorNormalCompletion3 && _iterator3.return != null) {
-          _iterator3.return();
-        }
-      } finally {
-        if (_didIteratorError3) {
-          throw _iteratorError3;
-        }
-      }
+      _iterator3.f();
     }
 
     var actualSize = actual.size;
@@ -872,12 +1000,11 @@ var __jsenv_assert__ = function (exports) {
       index++;
     };
 
-    var _iteratorNormalCompletion4 = true;
-    var _didIteratorError4 = false;
-    var _iteratorError4 = undefined;
+    var _iterator4 = createForOfIteratorHelper(actualEntries),
+        _step4;
 
     try {
-      for (var _iterator4 = actualEntries[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+      for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
         var actualEntry = _step4.value;
 
         var _ret = _loop(actualEntry);
@@ -886,18 +1013,9 @@ var __jsenv_assert__ = function (exports) {
       } // second check there is no unexpected entry
 
     } catch (err) {
-      _didIteratorError4 = true;
-      _iteratorError4 = err;
+      _iterator4.e(err);
     } finally {
-      try {
-        if (!_iteratorNormalCompletion4 && _iterator4.return != null) {
-          _iterator4.return();
-        }
-      } finally {
-        if (_didIteratorError4) {
-          throw _iteratorError4;
-        }
-      }
+      _iterator4.f();
     }
 
     var mappingWithoutExpectedEntry = entryMapping.find(function (mapping) {
@@ -1535,8 +1653,13 @@ var __jsenv_assert__ = function (exports) {
         return "".concat(previous).concat(propertyToAccessorString(data));
       }
 
-      if (type === "map-entry") return "".concat(previous, "[[mapEntry:").concat(data, "]]");
-      if (type === "set-entry") return "".concat(previous, "[[setEntry:").concat(data, "]]");
+      if (type === "map-entry") {
+        return "".concat(previous, "[[mapEntry:").concat(data, "]]");
+      }
+
+      if (type === "set-entry") {
+        return "".concat(previous, "[[setEntry:").concat(data, "]]");
+      }
 
       if (type === "reference") {
         return "".concat(previous);
@@ -1578,40 +1701,34 @@ var __jsenv_assert__ = function (exports) {
         return "".concat(previous, ".valueOf()");
       }
 
-      if (type === "identity") {
+      if (type === "identity" || type === "not") {
+        return previous;
+      }
+
+      if (type === "any") {
         return previous;
       }
 
       return "".concat(previous, " type:").concat(type, ", data:").concat(data);
     }, name);
     return path;
-  }; // eslint-disable-next-line consistent-return
-
+  };
 
   var arrayWithoutHoles = function (arr) {
-    if (Array.isArray(arr)) {
-      var i = 0;
-      var arr2 = new Array(arr.length);
-
-      for (; i < arr.length; i++) {
-        arr2[i] = arr[i];
-      }
-
-      return arr2;
-    }
+    if (Array.isArray(arr)) return arrayLikeToArray(arr);
   }; // eslint-disable-next-line consistent-return
 
 
   var iterableToArray = function (iter) {
-    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+    if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
   };
 
   var nonIterableSpread = function () {
-    throw new TypeError("Invalid attempt to spread non-iterable instance");
+    throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   };
 
   var _toConsumableArray = function (arr) {
-    return arrayWithoutHoles(arr) || iterableToArray(arr) || nonIterableSpread();
+    return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
   };
 
   var valueToWellKnown = function valueToWellKnown(value) {
@@ -1695,6 +1812,25 @@ var __jsenv_assert__ = function (exports) {
 
   var valueToString = function valueToString(value) {
     return valueToWellKnown(value) || inspect(value);
+  };
+
+  var anyComparisonToErrorMessage = function anyComparisonToErrorMessage(comparison) {
+    if (comparison.type !== "any") return undefined;
+    var path = comparisonToPath(comparison);
+    var actualValue = valueToString(comparison.actual);
+    var expectedConstructor = comparison.expected;
+    return createAnyMessage({
+      path: path,
+      expectedConstructor: expectedConstructor,
+      actualValue: actualValue
+    });
+  };
+
+  var createAnyMessage = function createAnyMessage(_ref) {
+    var path = _ref.path,
+        expectedConstructor = _ref.expectedConstructor,
+        actualValue = _ref.actualValue;
+    return "unexpected value.\n--- found ---\n".concat(actualValue, "\n--- expected ---\nany(").concat(expectedConstructor.name, ")\n--- at ---\n").concat(path);
   };
 
   var defaultComparisonToErrorMessage = function defaultComparisonToErrorMessage(comparison) {
@@ -1842,58 +1978,77 @@ var __jsenv_assert__ = function (exports) {
     return "unequal prototypes.\n--- prototype found ---\n".concat(actualPrototype, "\n--- prototype expected ---\n").concat(expectedPrototype, "\n--- at ---\n").concat(path);
   };
 
+  var createDetailedMessage = function createDetailedMessage(message) {
+    var details = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var string = "".concat(message);
+    Object.keys(details).forEach(function (key) {
+      var value = details[key];
+      string += "\n--- ".concat(key, " ---\n").concat(Array.isArray(value) ? value.join("\n") : value);
+    });
+    return string;
+  };
+
   var propertiesComparisonToErrorMessage = function propertiesComparisonToErrorMessage(comparison) {
+    var _createDetailedMessag;
+
     if (comparison.type !== "properties") return undefined;
-    var path = comparisonToPath(comparison);
-    var extra = comparison.actual.extra;
+    var path = comparisonToPath(comparison.parent);
     var missing = comparison.actual.missing;
-    var hasExtra = extra.length > 0;
-    var hasMissing = missing.length > 0;
+    var extra = comparison.actual.extra;
+    var missingCount = missing.length;
+    var extraCount = extra.length;
+    var unexpectedProperties = {};
+    extra.forEach(function (propertyName) {
+      unexpectedProperties[propertyName] = comparison.parent.actual[propertyName];
+    });
+    var missingProperties = {};
+    missing.forEach(function (propertyName) {
+      missingProperties[propertyName] = comparison.parent.expected[propertyName];
+    });
 
-    if (hasExtra && !hasMissing) {
-      return createUnexpectedPropertiesMessage({
-        path: path,
-        unexpectedProperties: propertyNameArrayToString(extra)
+    if (missingCount === 1 && extraCount === 0) {
+      return createDetailedMessage("1 missing property.", {
+        "missing property": inspect(missingProperties),
+        "at": path
       });
     }
 
-    if (!hasExtra && hasMissing) {
-      return createMissingPropertiesMessage({
-        path: path,
-        missingProperties: propertyNameArrayToString(missing)
+    if (missingCount > 1 && extraCount === 0) {
+      return createDetailedMessage("".concat(missing, " missing properties."), {
+        "missing properties": inspect(unexpectedProperties),
+        "at": path
       });
     }
 
-    return createUnexpectedAndMissingPropertiesMessage({
-      path: path,
-      unexpectedProperties: propertyNameArrayToString(extra),
-      missingProperties: propertyNameArrayToString(missing)
-    });
-  };
+    if (missingCount === 0 && extraCount === 1) {
+      return createDetailedMessage("1 unexpected property.", {
+        "unexpected property": inspect(unexpectedProperties),
+        "at": path
+      });
+    }
 
-  var createUnexpectedPropertiesMessage = function createUnexpectedPropertiesMessage(_ref) {
-    var path = _ref.path,
-        unexpectedProperties = _ref.unexpectedProperties;
-    return "unexpected properties.\n--- unexpected property names ---\n".concat(unexpectedProperties.join("\n"), "\n--- at ---\n").concat(path);
-  };
+    if (missingCount === 0 && extraCount > 1) {
+      return createDetailedMessage("".concat(extraCount, " unexpected properties."), {
+        "unexpected properties": inspect(unexpectedProperties),
+        "at": path
+      });
+    }
 
-  var createMissingPropertiesMessage = function createMissingPropertiesMessage(_ref2) {
-    var path = _ref2.path,
-        missingProperties = _ref2.missingProperties;
-    return "missing properties.\n--- missing property names ---\n".concat(missingProperties.join("\n"), "\n--- at ---\n").concat(path);
-  };
+    var message = "";
 
-  var createUnexpectedAndMissingPropertiesMessage = function createUnexpectedAndMissingPropertiesMessage(_ref3) {
-    var path = _ref3.path,
-        unexpectedProperties = _ref3.unexpectedProperties,
-        missingProperties = _ref3.missingProperties;
-    return "unexpected and missing properties.\n--- unexpected property names ---\n".concat(unexpectedProperties.join("\n"), "\n--- missing property names ---\n").concat(missingProperties.join("\n"), "\n--- at ---\n").concat(path);
-  };
+    if (missingCount === 1) {
+      message += "1 missing property";
+    } else {
+      message += "".concat(missingCount, " missing properties");
+    }
 
-  var propertyNameArrayToString = function propertyNameArrayToString(propertyNameArray) {
-    return propertyNameArray.map(function (propertyName) {
-      return inspect(propertyName);
-    });
+    if (extraCount === 1) {
+      message += " and 1 unexpected property.";
+    } else {
+      message += " and ".concat(extraCount, " unexpected properties.");
+    }
+
+    return createDetailedMessage(message, (_createDetailedMessag = {}, _defineProperty(_createDetailedMessag, missingCount === 1 ? "missing property" : "missing properties", inspect(missingProperties)), _defineProperty(_createDetailedMessag, extraCount === 1 ? "unexpected property" : "unexpected properties", inspect(unexpectedProperties)), _defineProperty(_createDetailedMessag, "at", path), _createDetailedMessag));
   };
 
   var propertiesOrderComparisonToErrorMessage = function propertiesOrderComparisonToErrorMessage(comparison) {
@@ -1903,8 +2058,8 @@ var __jsenv_assert__ = function (exports) {
     var actual = comparison.actual;
     return createUnexpectedPropertiesOrderMessage({
       path: path,
-      expectedPropertiesOrder: propertyNameArrayToString$1(expected),
-      actualPropertiesOrder: propertyNameArrayToString$1(actual)
+      expectedPropertiesOrder: propertyNameArrayToString(expected),
+      actualPropertiesOrder: propertyNameArrayToString(actual)
     });
   };
 
@@ -1915,7 +2070,7 @@ var __jsenv_assert__ = function (exports) {
     return "unexpected properties order.\n--- properties order found ---\n".concat(actualPropertiesOrder.join("\n"), "\n--- properties order expected ---\n").concat(expectedPropertiesOrder.join("\n"), "\n--- at ---\n").concat(path);
   };
 
-  var propertyNameArrayToString$1 = function propertyNameArrayToString(propertyNameArray) {
+  var propertyNameArrayToString = function propertyNameArrayToString(propertyNameArray) {
     return propertyNameArray.map(function (propertyName) {
       return inspect(propertyName);
     });
@@ -2035,6 +2190,22 @@ var __jsenv_assert__ = function (exports) {
     return "an entry is missing.\n--- missing entry key ---\n".concat(valueToString(comparison.expected.key), "\n--- missing entry value ---\n").concat(valueToString(comparison.expected.value), "\n--- at ---\n").concat(comparisonToPath(comparison.parent));
   };
 
+  var notComparisonToErrorMessage = function notComparisonToErrorMessage(comparison) {
+    if (comparison.type !== "not") return undefined;
+    var path = comparisonToPath(comparison);
+    var actualValue = valueToString(comparison.actual);
+    return createNotMessage({
+      path: path,
+      actualValue: actualValue
+    });
+  };
+
+  var createNotMessage = function createNotMessage(_ref) {
+    var path = _ref.path,
+        actualValue = _ref.actualValue;
+    return "unexpected value.\n--- found ---\n".concat(actualValue, "\n--- expected ---\nan other value\n--- at ---\n").concat(path);
+  };
+
   var arrayLengthComparisonToMessage = function arrayLengthComparisonToMessage(comparison) {
     if (comparison.type !== "identity") return undefined;
     var parentComparison = comparison.parent;
@@ -2042,23 +2213,36 @@ var __jsenv_assert__ = function (exports) {
     if (parentComparison.data !== "length") return undefined;
     var grandParentComparison = parentComparison.parent;
     if (!isArray(grandParentComparison.actual)) return undefined;
-    if (comparison.actual > comparison.expected) return createBiggerThanExpectedMessage$1(comparison);
-    return createSmallerThanExpectedMessage$1(comparison);
-  };
+    var actualArray = grandParentComparison.actual;
+    var expectedArray = grandParentComparison.expected;
+    var actualLength = comparison.actual;
+    var expectedLength = comparison.expected;
+    var path = comparisonToPath(grandParentComparison);
 
-  var createBiggerThanExpectedMessage$1 = function createBiggerThanExpectedMessage(comparison) {
-    return "an array is bigger than expected.\n--- array length found ---\n".concat(comparison.actual, "\n--- array length expected ---\n").concat(comparison.expected, "\n--- at ---\n").concat(comparisonToPath(comparison.parent.parent));
-  };
+    if (actualLength < expectedLength) {
+      var missingValues = expectedArray.slice(actualLength);
+      return createDetailedMessage("an array is smaller than expected.", {
+        "array length found": actualLength,
+        "array length expected": expectedLength,
+        "missing values": inspect(missingValues),
+        "at": path
+      });
+    }
 
-  var createSmallerThanExpectedMessage$1 = function createSmallerThanExpectedMessage(comparison) {
-    return "an array is smaller than expected.\n--- array length found ---\n".concat(comparison.actual, "\n--- array length expected ---\n").concat(comparison.expected, "\n--- at ---\n").concat(comparisonToPath(comparison.parent.parent));
+    var extraValues = actualArray.slice(expectedLength);
+    return createDetailedMessage("an array is bigger than expected.", {
+      "array length found": actualLength,
+      "array length expected": expectedLength,
+      "extra values": inspect(extraValues),
+      "at": path
+    });
   };
   /* eslint-disable import/max-dependencies */
 
 
   var comparisonToErrorMessage = function comparisonToErrorMessage(comparison) {
     var failedComparison = deepestComparison(comparison);
-    return firstFunctionReturningSomething([mapEntryComparisonToErrorMessage, prototypeComparisonToErrorMessage, referenceComparisonToErrorMessage, propertiesComparisonToErrorMessage, propertiesOrderComparisonToErrorMessage, symbolsComparisonToErrorMessage, symbolsOrderComparisonToErrorMessage, setSizeComparisonToMessage, arrayLengthComparisonToMessage], failedComparison) || defaultComparisonToErrorMessage(failedComparison);
+    return firstFunctionReturningSomething([anyComparisonToErrorMessage, mapEntryComparisonToErrorMessage, notComparisonToErrorMessage, prototypeComparisonToErrorMessage, referenceComparisonToErrorMessage, propertiesComparisonToErrorMessage, propertiesOrderComparisonToErrorMessage, symbolsComparisonToErrorMessage, symbolsOrderComparisonToErrorMessage, setSizeComparisonToMessage, arrayLengthComparisonToMessage], failedComparison) || defaultComparisonToErrorMessage(failedComparison);
   };
 
   var deepestComparison = function deepestComparison(comparison) {
@@ -2125,6 +2309,14 @@ var __jsenv_assert__ = function (exports) {
     }
 
     return _assert.apply(void 0, arguments);
+  };
+
+  assert.not = function (value) {
+    return createNotExpectation(value);
+  };
+
+  assert.any = function (Constructor) {
+    return createAnyExpectation(Constructor);
   };
   /*
    * anyOrder is not documented because ../readme.md#Why-opinionated-

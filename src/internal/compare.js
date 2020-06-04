@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import { isPrimitive } from "./isComposite.js"
 import { findPreviousComparison } from "./findPreviousComparison.js"
 import { isSet, isMap, isRegExp, isError, isArray, somePrototypeMatch } from "./object-subtype.js"

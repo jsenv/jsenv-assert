@@ -24,9 +24,11 @@ try {
 } catch (e) {
   ensureAssertionErrorWithMessage(
     e,
-    `unexpected properties.
---- unexpected property names ---
-"a"
+    `1 unexpected property.
+--- unexpected property ---
+{
+  "a": true
+}
 --- at ---
 value`,
   )
@@ -41,9 +43,11 @@ try {
 } catch (e) {
   ensureAssertionErrorWithMessage(
     e,
-    `missing properties.
---- missing property names ---
-"a"
+    `1 missing property.
+--- missing property ---
+{
+  "a": true
+}
 --- at ---
 value`,
   )
@@ -64,13 +68,17 @@ try {
 } catch (e) {
   ensureAssertionErrorWithMessage(
     e,
-    `unexpected and missing properties.
---- unexpected property names ---
-"d"
-"e"
---- missing property names ---
-"b"
-"c"
+    `2 missing properties and 2 unexpected properties.
+--- missing properties ---
+{
+  "b": true,
+  "c": true
+}
+--- unexpected properties ---
+{
+  "d": true,
+  "e": true
+}
 --- at ---
 value`,
   )
@@ -81,6 +89,7 @@ value`,
 try {
   const actual = {
     a: true,
+    c: false,
   }
   const expected = {
     a: false,

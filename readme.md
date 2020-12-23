@@ -326,7 +326,7 @@ value.answer[[Configurable]]
 
 # Why opinionated ?
 
-As shown `assert` is strict on `actual` / `expected` comparison. It is designed to make test fails if something subtle changes. Any subtle change in code might break things relying on it. You need that level of precision by default to ensure your code cannot introduce regression.
+As shown `assert` is strict on `actual` / `expected` comparison. It is designed like this to make test fails if something subtle changes. Any subtle change in code might break things relying on it. You need that level of precision by default to ensure your code cannot introduce regression.
 
 # Properties order constraint
 
@@ -353,19 +353,21 @@ In general code does not rely on properties order but sometimes it's crucial.
 
 # Flexible assertions
 
-Some tests requires flexibility in the assertions. In that case you can use patterns documented below.
+Some tests requires flexibility in the assertions. In that case you can use patterns documented in this part. But before showing those example, one opinion I would like to share: Ideally, there would be only one assertion.
 
-It's possible to use only `assert` and standard js to get the level of flexibility required. It makes test simple, effective and clean.
+One assertion to test everything is a simple rule, simple to follow, simple to understand. It will increase efficiency and prevent [bikeshedding](https://en.wiktionary.org/wiki/bikeshedding) (If you really think too much you can even bikeshed yourself).
 
 > equal() is my favorite assertion. If the only available assertion in every test suite was equal(), almost every test suite in the world would be better for it.
 > — Eric Elliot in [Rethinking Unit Test Assertion](https://medium.com/javascript-scene/rethinking-unit-test-assertions-55f59358253f)
 
-That being said `@jsenv/assert` also exports `assert.any` and `assert.not`. The examples below proposes side by side:
+That being said `@jsenv/assert` has two other assertions than can be used: `assert.any` and `assert.not`. They exists mostly because they are useful enough to potentially counterbalance the simplicity of using only one assertion.
 
-- An assert only solution
-- The equivalent using `assert.any` or `assert.not`.
+> Personally, I tend to use only `assert` because having only on way of doing things make things easier for my brain. And I care more about this than saving lines of code in a test file.
 
-If you want to use `assert.any` or `assert.not`, remember it's a tradeoff between simplicity and verbosity.
+For that reason code examples that will follow have two sections:
+
+- First one shows how to write assertion using `assert`
+- Second one shows the equivalent using `assert.any` or `assert.not`.
 
 ## Assert any value of a given type
 
@@ -419,7 +421,7 @@ const user = createUser()
 const actual = user
 const expected = {
   whatever: 42,
-  token: assert.any(Number),
+  creationTime: assert.any(Number),
 }
 assert({ actual, expected })
 ```

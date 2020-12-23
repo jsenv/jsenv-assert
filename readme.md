@@ -11,22 +11,10 @@ Opinionated test assertion.
 
 - [Presentation](#Presentation)
 - [Installation](#Installation)
-  - [Browser usage](#Browser-usage)
-  - [Node usage](#Node-usage)
 - [How it works](#How-it-works)
-- [Successfull comparison examples](#Successfull-comparison-examples)
-- [Failing comparison examples](#Failing-comparison-examples)
-  - [Failing on value](#Failing-on-value)
-  - [Failing on prototype](#Failing-on-prototype)
-  - [Failing on property value](#Failing-on-property-value)
-  - [Failing on properties order](#Failing-on-properties-order)
-  - [Failing on property configurability](#Failing-on-property-configurability)
 - [Why opinionated ?](#Why-opinionated-)
-  - [Properties order constraint](#Properties-order-constraint)
-  - [Flexible assertions](#Flexible-assertions)
-    - [Assert any value of a given type](#Assert-any-value-of-a-given-type)
-    - [Assert an other value](#Assert-an-other-value)
-    - [Assert without property order constraint](Assert-without-property-order-constraint)
+- [Properties order constraint](#Properties-order-constraint)
+- [Flexible assertions](#Flexible-assertions)
 
 # Presentation
 
@@ -51,7 +39,8 @@ npm install @jsenv/assert
 
 ## Browser usage
 
-From a remote server.
+<details>
+  <summary>Remote server using script type module</summary>
 
 ```html
 <script type="module">
@@ -59,7 +48,10 @@ From a remote server.
 </script>
 ```
 
-From a remote server with basic script tag.
+</details>
+
+<details>
+  <summary>Remote server using script</summary>
 
 ```html
 <script src="https://unpkg.com/@jsenv/assert@latest/dist/global/main.js"></script>
@@ -68,7 +60,10 @@ From a remote server with basic script tag.
 </script>
 ```
 
-From your node_modules.
+</details>
+
+<details>
+  <summary>From node modules using script type module</summary>
 
 ```html
 <script type="module">
@@ -76,13 +71,17 @@ From your node_modules.
 </script>
 ```
 
-From your node_modules with bare specifier.
+Or
 
-```js
-import { assert } from "@jsenv/assert"
+```html
+<script type="module">
+  import { assert } from "@jsenv/assert"
+</script>
 ```
 
-You need to execute your code with something capable to consume esmodule and resolve node module bare specifiers. Something that searches at `"./node_modules/@jsenv/assert/index.js"` for `import "@jsenv/assert"'`. rollup or webpack can do this for instance.
+> If you chhose to write `@jsenv/assert`, you need to execute your code with something capable to consume esmodule and resolve node module bare specifiers. Something that searches at `"./node_modules/@jsenv/assert/index.js"` for `import "@jsenv/assert"'`. rollup or webpack can do this for instance.
+
+</details>
 
 — see also https://jsenv.github.io/jsenv-assert/browser-interactive-example/browser-interactive-example.html.
 
@@ -109,50 +108,72 @@ const { assert } = require("@jsenv/assert")
 
 To better understand if comparison will fail or not let's see some successfull comparison first and some failing comparisons afterwards.
 
-# Successfull comparison examples
+## Successful comparison examples
+
+Various code examples where comparison between `actual` and `expected` is successful (it does not throw).
+
+<details>
+  <summary>dates</summary>
 
 ```js
 import { assert } from "@jsenv/assert"
 
-// dates
-{
-  const actual = new Date()
-  const expected = new Date()
+const actual = new Date()
+const expected = new Date()
 
-  assert({ actual, expected })
-}
-
-// errors
-{
-  const actual = new Error("message")
-  const expected = new Error("message")
-
-  assert({ actual, expected })
-}
-
-// objects without prototype
-{
-  const actual = Object.create(null)
-  const expected = Object.create(null)
-
-  assert({ actual, expected })
-}
-
-// regexps
-{
-  const actual = /ok/
-  const expected = /ok/
-
-  assert({ actual, expected })
-}
+assert({ actual, expected })
 ```
 
-# Failing comparison examples
+</details>
 
-Various code examples where comparison between `actual` and `expected` is failing.<br />
-Each code example is followed with the console output.
+<details>
+  <summary>errors</summary>
 
-## Failing on value
+```js
+import { assert } from "@jsenv/assert"
+
+const actual = new Error("message")
+const expected = new Error("message")
+
+assert({ actual, expected })
+```
+
+</details>
+
+<details>
+  <summary>object without prototypes</summary>
+
+```js
+import { assert } from "@jsenv/assert"
+
+const actual = Object.create(null)
+const expected = Object.create(null)
+
+assert({ actual, expected })
+```
+
+</details>
+
+<details>
+  <summary>regular expressions</summary>
+
+```js
+import { assert } from "@jsenv/assert"
+
+const actual = /ok/
+const expected = /ok/
+
+assert({ actual, expected })
+```
+
+</details>
+
+## Failing comparison examples
+
+Various code examples where comparison between `actual` and `expected` is failing. Each code example is followed with the console output.
+
+<details>
+  <summary>Failing on value</summary>
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -179,7 +200,10 @@ AssertionError: unequal values.
 value
 ```
 
-## Failing on prototype
+</details>
+
+<details>
+  <summary>Failing on prototype</summary>
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -206,7 +230,10 @@ window.Error.prototype
 value[[Prototype]]
 ```
 
-## Failing on property value
+</details>
+
+<details>
+  <summary>Failing on property value</summary>
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -233,7 +260,10 @@ false
 value.foo
 ```
 
-## Failing on properties order
+</details>
+
+<details>
+  <summary>Failing on properties order</summary>
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -262,7 +292,10 @@ AssertionError: unexpected properties order.
 value
 ```
 
-## Failing on property configurability
+</details>
+
+<details>
+  <summary>Failing on property configurability</summary>
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -289,15 +322,18 @@ AssertionError: unequal values.
 value.answer[[Configurable]]
 ```
 
+</details>
+
 # Why opinionated ?
 
-As shown `assert` is strict on `actual` / `expected` comparison. It is designed to make test fails if something subtle changes. Any subtle change in code might break things relying on it. You need that level of precision by default to ensure your code does not break a given contract.
+As shown `assert` is strict on `actual` / `expected` comparison. It is designed to make test fails if something subtle changes. Any subtle change in code might break things relying on it. You need that level of precision by default to ensure your code cannot introduce regression.
 
-> Contract example: calling function named `whatever` returns value `{ answer: 42 }`.
+# Properties order constraint
 
-## Properties order constraint
+The strongest contraints is that actual and expected must have the same properties order.
 
-The strongest contraints is that actual and expected must have the same properties order. In general code does not rely on properties order but it might be crucial.
+<details>
+<summary>Properties order code example</summary>
 
 ```js
 Object.keys({
@@ -311,88 +347,141 @@ Object.keys({
 })[0] // "bar"
 ```
 
-## Flexible assertions
+</details>
 
-Some tests requires flexibility in the assertions. In that case you can use `assert.any`, `assert.not` or pattern documented below.
+In general code does not rely on properties order but sometimes it's crucial.
 
-However helpers such as `assert.any` and `assert.not` comes with a cost: they are a new way of doing things. It means you need to learn them and decide when to use them. Because of this, every scenario comes with an **assert only solution**. These solution involves standard JavaScript and `assert` only to get the level of flexibility required.
+# Flexible assertions
 
-### Assert any value of a given type
+Some tests requires flexibility in the assertions. In that case you can use patterns documented below.
 
-Let's say you have a function returning an object. You cannot control the object creationTime easily so you just want to ensure it's a number.
+It's possible to use only `assert` and standard js to get the level of flexibility required. It makes test simple, effective and clean.
+
+> equal() is my favorite assertion. If the only available assertion in every test suite was equal(), almost every test suite in the world would be better for it.
+> — Eric Elliot in [Rethinking Unit Test Assertion](https://medium.com/javascript-scene/rethinking-unit-test-assertions-55f59358253f)
+
+That being said `@jsenv/assert` also exports `assert.any` and `assert.not`. The examples below proposes side by side:
+
+- An assert only solution
+- The equivalent using `assert.any` or `assert.not`.
+
+If you want to use `assert.any` or `assert.not`, remember it's a tradeoff between simplicity and verbosity.
+
+## Assert any value of a given type
+
+Let's say you have a function returning a user.
 
 ```js
-export const createSomething = () => {
+export const createUser = () => {
   return {
-    whatever: 42,
+    name: "john",
     creationTime: Date.now(),
   }
 }
 ```
 
-You can test it using `assert.any`:
+You cannot control the user creationTime easily so you just want to ensure it's a number.
+
+<details>
+  <summary>using <code>assert</code></summary>
 
 ```js
-import { createSomething } from "./something.js"
+import { createUser } from "./user.js"
 
-{
-  const actual = createSomething()
-  const expected = {
-    whatever: 42,
-    token: assert.any(Number),
-  }
-  assert({ actual, expected })
-}
-```
+const user = createUser()
 
-Or using only `assert`:
-
-```js
-import { createSomething } from "./something.js"
-
-const something = createSomething()
-
-// first assert it looks correct being flexible on creationTime
+// assert user shape is correct being flexible on creationTime
 {
   const actual = user
   const expected = {
-    whatever: 42,
-    creationTime: something.creationTime,
+    name: "john",
+    creationTime: actual.creationTime,
   }
   assert({ actual, expected })
 }
-// then assert creationTime is a number
+// then assert user.creationTime is a number
 {
-  const actual = typeof something.creationTime
+  const actual = typeof user.creationTime
   const expected = "number"
   assert({ actual, expected })
 }
 ```
 
-### Assert an other value
+</details>
 
-You have a value and you want to test that it's not an other value.
-
-You can test this using `assert.not`:
+<details>
+  <summary>using <code>assert.any</code></summary>
 
 ```js
-// value is produced by an external function and you just want to assert it's not 42
-const value = 41
-const actual = value
-const expected = assert.not(42)
+import { createUser } from "./user.js"
+
+const user = createUser()
+const actual = user
+const expected = {
+  whatever: 42,
+  token: assert.any(Number),
+}
 assert({ actual, expected })
 ```
 
-Or using only `assert`:
+</details>
+
+## Assert an other value
+
+Let's say you have a function returning a random user name that must not be the current user name. Here we don't care about the value itself. What is important is to test it's not an other value.
 
 ```js
-const value = 41
-const actual = value !== 42
+export const getRandomDifferentUserName = (user) => {
+  const randomName = getRandomName()
+  if (randomName === user.name) {
+    return getRandomDifferentUserName(user)
+  }
+  return randomName
+}
+
+const getRandomName = () => {
+  return Array.from({ length: 4 })
+    .map(() => getRandomLetter())
+    .join("")
+}
+
+const getRandomLetter = () => {
+  return ALPHABET.charAt(Math.floor(Math.random() * ALPHABET.length))
+}
+
+const ALPHABET = "abcdefghijklmnopqrstuvwxyz"
+```
+
+<details>
+  <summary>using <code>assert</code></summary>
+
+```js
+import { assert } from "@jsenv/assert"
+import { getRandomDifferentUserName } from "./user.js"
+
+const name = getRandomDifferentUserName({ name: "toto" })
+const actual = name !== "toto"
 const expected = true
 assert({ actual, expected })
 ```
 
-### Assert without property order constraint
+</details>
+
+<details>
+  <summary>using <code>assert.not</code></summary>
+
+```js
+import { assert } from "@jsenv/assert"
+import { getRandomDifferentUserName } from "./user.js"
+
+const actual = getRandomDifferentUserName({ name: "toto" })
+const expected = assert.not("toto")
+assert({ actual, expected })
+```
+
+</details>
+
+## Assert without property order constraint
 
 You have an object and you don't care about the object properties order.
 

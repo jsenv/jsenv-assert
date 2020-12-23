@@ -79,7 +79,7 @@ Or
 </script>
 ```
 
-> If you chhose to write `@jsenv/assert`, you need to execute your code with something capable to consume esmodule and resolve node module bare specifiers. Something that searches at `"./node_modules/@jsenv/assert/index.js"` for `import "@jsenv/assert"'`. rollup or webpack can do this for instance.
+> Using `@jsenv/assert` notation means something in your setup maps `"@jsenv/assert"` to `"./node_modules/@jsenv/assert/index.js"`. Something like [import maps](https://github.com/WICG/import-maps), or webpack for instance.
 
 </details>
 

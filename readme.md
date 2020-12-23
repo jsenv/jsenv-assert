@@ -497,3 +497,19 @@ const actual = { bar: value.bar, foo: value.foo }
 const expected = { bar: true, foo: true }
 assert({ actual, expected })
 ```
+
+## Assert subset of properties
+
+You have an object and you care only about a part of it.
+
+In that case recreate a lighter object with less properties (only the one you care about).
+
+```js
+// assuming you care only about bar and foo.
+// if there is more properties it's not important
+const value = { foo: true, bar: true, whatever: 42 }
+// make actual an object with only bar and foo
+const actual = { bar: value.bar, foo: value.foo }
+const expected = { bar: true, foo: true }
+assert({ actual, expected })
+```

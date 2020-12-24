@@ -488,7 +488,7 @@ assert({ actual, expected })
 <details>
   <summary>description</summary>
 
-You need to test that something should happen but you don't have the control to make it happen immediatly or in at an exact point in time.
+You need to test that something should happen but you don't have the control to make it happen immediatly or at an exact point in time.
 
 ```js
 export const callAfter50Ms = (callback) => {
@@ -566,7 +566,7 @@ const user = createUser()
 }
 ```
 
-> You can also use `assert.any` but consider [One assertion to test everything](#One-assertion-to-test-everything) before using `assert.any`.
+You can also use `assert.any` but consider [One assertion to test everything](#One-assertion-to-test-everything) before using `assert.any`.
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -575,7 +575,7 @@ import { createUser } from "./user.js"
 const user = createUser()
 const actual = user
 const expected = {
-  whatever: 42,
+  name: "sam",
   creationTime: assert.any(Number),
 }
 assert({ actual, expected })
@@ -640,43 +640,6 @@ assert({ actual, expected })
 
 </details>
 
-## Assert without property order constraint
-
-<details>
-  <summary>description</summary>
-
-You have an object and you don't care about the object properties order.
-
-```js
-export const getUser = () => {
-  return {
-    name: "sam",
-    age: 32,
-  }
-}
-```
-
-</details>
-
-<details>
-  <summary>implementation</summary>
-
-In that case force the object property order by recreating it.
-
-```js
-import { assert } from "@jsenv/assert"
-import { getUser } from "./user.js"
-
-// assuming you don't care about properties order
-const user = getUser()
-// make actual an object with your own property order
-const actual = { age: user.age, name: user.name }
-const expected = { age: 32, name: "sam" }
-assert({ actual, expected })
-```
-
-</details>
-
 ## Assert subset of properties
 
 <details>
@@ -713,6 +676,43 @@ const user = getUser()
 // make actual an object with only name and age
 const actual = { name: user.name, age: user.age }
 const expected = { name: "sam", age: 32 }
+assert({ actual, expected })
+```
+
+</details>
+
+## Assert without property order constraint
+
+<details>
+  <summary>description</summary>
+
+You have an object and you don't care about the object properties order.
+
+```js
+export const getUser = () => {
+  return {
+    name: "sam",
+    age: 32,
+  }
+}
+```
+
+</details>
+
+<details>
+  <summary>implementation</summary>
+
+In that case force the object property order by recreating it.
+
+```js
+import { assert } from "@jsenv/assert"
+import { getUser } from "./user.js"
+
+// assuming you don't care about properties order
+const user = getUser()
+// make actual an object with your own property order
+const actual = { age: user.age, name: user.name }
+const expected = { age: 32, name: "sam" }
 assert({ actual, expected })
 ```
 

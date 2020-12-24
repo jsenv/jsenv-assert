@@ -396,6 +396,7 @@ import { getCircleArea } from "./circle.js"
 
 try {
   getCircleArea("toto")
+  // line below will be called if getCircleArea does not throw as it should
   throw new Error("should throw")
 } catch (error) {
   const actual = error

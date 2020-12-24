@@ -354,18 +354,21 @@ In general code does not rely on properties order but sometimes it's crucial.
 
 In the [Examples](#Examples) part we'll see how of `assert` can be used to test what you need to. But before that, one opinion I would like to share: Ideally, there would be only one assertion.
 
-One assertion to test everything is a simple rule, simple to follow, simple to understand. It will increase efficiency and prevent [bikeshedding](https://en.wiktionary.org/wiki/bikeshedding) (If you really think too much you can even bikeshed yourself).
+One assertion to test everything is a simple rule, simple to follow, simple to understand. It will increase efficiency and prevent [bikeshedding](https://en.wiktionary.org/wiki/bikeshedding).
 
 > equal() is my favorite assertion. If the only available assertion in every test suite was equal(), almost every test suite in the world would be better for it.
+>
 > — Eric Elliot in [Rethinking Unit Test Assertion](https://medium.com/javascript-scene/rethinking-unit-test-assertions-55f59358253f)
 
-That being said `@jsenv/assert` has two other assertions than can be used: `assert.any` and `assert.not`. They exists mostly because they are useful enough to potentially counterbalance the simplicity of using only one assertion.
+Personally, I tend to use only `assert` because having only on way of doing things make things easier for my brain. And I care more about this than saving lines of code in a test file.
 
-> Personally, I tend to use only `assert` because having only on way of doing things make things easier for my brain. And I care more about this than saving lines of code in a test file.
+That being said, `@jsenv/assert` has two other assertions than can be used: `assert.any` and `assert.not`. They exists mostly because they are useful enough to potentially counterbalance the simplicity of using only one assertion.
 
 ## AAA pattern
 
-The AAA pattern stands for Act, Arrange, Assert. It's used implicitely in code examples. This pattern is referenced as recommendation 4.3 in Node.js best practices.
+The AAA pattern stands for Arrange, Act, Assert. This pattern is really great to organize code in test files.
+
+This pattern is referenced in Node.js best practices:
 
 > Structure your tests with 3 well-separated sections: Arrange, Act & Assert (AAA).
 >
@@ -443,12 +446,14 @@ You want to test that, under certain circumstances, a function will be called.
 
 ```js
 export const createAbortSignal = () => {
-  return {
+  const abortSignal = {
     onabort: () => {},
     abort: () => {
-      onabort()
+      abortSignal.onabort()
     },
   }
+
+  return abortSignal
 }
 ```
 

@@ -416,7 +416,7 @@ try {
 }
 ```
 
-If `getCircleArea` was an async function, just use `await`.
+If `getCircleArea` was an `async` function, you could use `await`.
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -439,7 +439,7 @@ try {
 <details>
   <summary>description</summary>
 
-You could must call a function under certain cirtumstances and you want to test that.
+You want to test that, under certain circumstances, a function will be called.
 
 ```js
 export const createAbortSignal = () => {
@@ -495,8 +495,6 @@ export const callAfter50Ms = (callback) => {
   setTimeout(callback, 50)
 }
 ```
-
-
 
 </details>
 

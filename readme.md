@@ -13,8 +13,7 @@ Opinionated test assertion.
 - [Installation](#Installation)
 - [How it works](#How-it-works)
 - [Why opinionated ?](#Why-opinionated-)
-- [Properties order constraint](#Properties-order-constraint)
-- [Flexible assertions](#Flexible-assertions)
+- [Examples](#Examples)
 
 # Presentation
 
@@ -328,7 +327,7 @@ value.answer[[Configurable]]
 
 As shown `assert` is strict on `actual` / `expected` comparison. It is designed like this to make test fails if something subtle changes. Any subtle change in code might break things relying on it. You need that level of precision by default to ensure your code cannot introduce regression.
 
-# Properties order constraint
+## Properties order constraint
 
 The strongest contraints is that actual and expected must have the same properties order.
 
@@ -351,9 +350,9 @@ Object.keys({
 
 In general code does not rely on properties order but sometimes it's crucial.
 
-# Flexible assertions
+## One assertion to test everything
 
-Some tests requires flexibility in the assertions. In that case you can use patterns documented in this part. But before showing those example, one opinion I would like to share: Ideally, there would be only one assertion.
+In the [Examples](#Examples) part we'll see how of `assert` can be used to test what you need to. But before that, one opinion I would like to share: Ideally, there would be only one assertion.
 
 One assertion to test everything is a simple rule, simple to follow, simple to understand. It will increase efficiency and prevent [bikeshedding](https://en.wiktionary.org/wiki/bikeshedding) (If you really think too much you can even bikeshed yourself).
 
@@ -364,28 +363,188 @@ That being said `@jsenv/assert` has two other assertions than can be used: `asse
 
 > Personally, I tend to use only `assert` because having only on way of doing things make things easier for my brain. And I care more about this than saving lines of code in a test file.
 
-For that reason code examples that will follow have two sections:
+## AAA pattern
 
-- First one shows how to write assertion using `assert`
-- Second one shows the equivalent using `assert.any` or `assert.not`.
+The AAA pattern stands for Act, Arrange, Assert. It's used implicitely in code examples. This pattern is referenced as recommendation 4.3 in Node.js best practices.
+
+> Structure your tests with 3 well-separated sections: Arrange, Act & Assert (AAA).
+>
+> — Yoni Goldberg in [Structure tests by the AAA pattern](https://github.com/goldbergyoni/nodebestpractices/blob/061bd10c2a4e2ba3407d9e1205b0fe702ef82b57/sections/testingandquality/aaa.md)
+
+You can also check the following medium article for an other point of view.
+
+> The AAA (Arrange-Act-Assert) pattern has become almost a standard across the industry.
+>
+> — Paulo Gomes in [Unit Testing and the Arrange, Act and Assert (AAA) Pattern](https://medium.com/@pjbgf/title-testing-code-ocd-and-the-aaa-pattern-df453975ab80)
+
+# Examples
+
+This part gives illustrates how `assert` can be used in common use cases.
+
+## Assert a function throws
+
+<details>
+  <summary>description</summary>
+
+You have a function throwing an error in certain cistumstances. You want to reproduce this scenario and test how that function throws.
+
+```js
+export const getCircleArea = (circleRadius) => {
+  if (isNaN(circleRadius)) {
+    throw new TypeError(`circleRadius must be a number, received ${circleRadius}`)
+  }
+  return circleRadius * circleRadius * Math.PI
+}
+```
+
+</details>
+
+<details>
+  <summary>implementation</summary>
+
+```js
+import { assert } from "@jsenv/assert"
+import { getCircleArea } from "./circle.js"
+
+try {
+  getCircleArea("toto")
+  throw new Error("should throw")
+} catch (error) {
+  const actual = error
+  const expected = new TypeError(`circleRadius must be a number, received toto`)
+  assert({ actual, expected })
+}
+```
+
+If `getCircleArea` was an async function, just use `await`.
+
+```js
+import { assert } from "@jsenv/assert"
+import { getCircleArea } from "./circle.js"
+
+try {
+  await getCircleArea("toto")
+  throw new Error("should throw")
+} catch (error) {
+  const actual = error
+  const expected = new TypeError(`circleRadius must be a number, received toto`)
+  assert({ actual, expected })
+}
+```
+
+</details>
+
+## Assert a callback is called
+
+<details>
+  <summary>description</summary>
+
+You could must call a function under certain cirtumstances and you want to test that.
+
+```js
+export const createAbortSignal = () => {
+  return {
+    onabort: () => {},
+    abort: () => {
+      onabort()
+    },
+  }
+}
+```
+
+Here you want to test that if you create an `abortSignal` and do `abortSignal.abort`, `abortSignal.onabort` is called.
+
+</details>
+
+<details>
+  <summary>implementation</summary>
+
+> This code is a great example of the [AAA pattern](#AAA-pattern).
+
+```js
+import { assert } from "@jsenv/assert"
+import { createAbortSignal } from "./abort-signal.js"
+
+// arrange
+const abortSignal = createAbortSignal()
+let called = false
+abortSignal.onabort = () => {
+  called = true
+}
+
+// act
+abortSignal.abort()
+
+// assert
+const actual = called
+const expected = true
+assert({ actual, expected })
+```
+
+</details>
+
+## Assert something should happen
+
+<details>
+  <summary>description</summary>
+
+You need to test that something should happen but you don't have the control to make it happen immediatly or in at an exact point in time.
+
+```js
+export const callAfter50Ms = (callback) => {
+  setTimeout(callback, 50)
+}
+```
+
+
+
+</details>
+
+<details>
+  <summary>implementation</summary>
+
+In this scenario you might be tempted to mock `setTimeout`. Doing this make unit test complex and too tied with the code under test. Mocks should be avoided when possible. By waiting several ms, code is testing more accurately what happens.
+
+```js
+import { assert } from "@jsenv/assert"
+import { callAfter50Ms } from "./call-me-maybe.js"
+
+let called = false
+callAfter50Ms(() => {
+  called = true
+})
+
+await new Promise((resolve) => setTimeout(resolve, 80)) // wait a bit more than 50ms
+
+const actual = called
+const expected = true
+assert({ actual, expected })
+```
+
+</details>
 
 ## Assert any value of a given type
+
+<details>
+  <summary>description</summary>
 
 Let's say you have a function returning a user.
 
 ```js
 export const createUser = () => {
   return {
-    name: "john",
+    name: "sam",
     creationTime: Date.now(),
   }
 }
 ```
 
-You cannot control the user creationTime easily so you just want to ensure it's a number.
+You cannot control the user `creationTime` easily so you just want to ensure it's a number.
+
+</details>
 
 <details>
-  <summary>using <code>assert</code></summary>
+  <summary>implementation</summary>
 
 ```js
 import { createUser } from "./user.js"
@@ -396,7 +555,7 @@ const user = createUser()
 {
   const actual = user
   const expected = {
-    name: "john",
+    name: "sam",
     creationTime: actual.creationTime,
   }
   assert({ actual, expected })
@@ -409,12 +568,10 @@ const user = createUser()
 }
 ```
 
-</details>
-
-<details>
-  <summary>using <code>assert.any</code></summary>
+> You can also use `assert.any` but consider [One assertion to test everything](#One-assertion-to-test-everything) before using `assert.any`.
 
 ```js
+import { assert } from "@jsenv/assert"
 import { createUser } from "./user.js"
 
 const user = createUser()
@@ -430,7 +587,10 @@ assert({ actual, expected })
 
 ## Assert an other value
 
-Let's say you have a function returning a random user name that must not be the current user name. Here we don't care about the value itself. What is important is to test it's not an other value.
+<details>
+  <summary>description</summary>
+
+You have a function returning a random user name that must not be the current user name. Here we don't care about the value itself. What is important is to test it's not an other value.
 
 ```js
 export const getRandomDifferentUserName = (user) => {
@@ -454,8 +614,10 @@ const getRandomLetter = () => {
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz"
 ```
 
+</details>
+
 <details>
-  <summary>using <code>assert</code></summary>
+  <summary>implementation</summary>
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -467,10 +629,7 @@ const expected = true
 assert({ actual, expected })
 ```
 
-</details>
-
-<details>
-  <summary>using <code>assert.not</code></summary>
+You can also use `assert.not` but consider [One assertion to test everything](#One-assertion-to-test-everything) before using `assert.not`.
 
 ```js
 import { assert } from "@jsenv/assert"
@@ -485,31 +644,78 @@ assert({ actual, expected })
 
 ## Assert without property order constraint
 
+<details>
+  <summary>description</summary>
+
 You have an object and you don't care about the object properties order.
+
+```js
+export const getUser = () => {
+  return {
+    name: "sam",
+    age: 32,
+  }
+}
+```
+
+</details>
+
+<details>
+  <summary>implementation</summary>
 
 In that case force the object property order by recreating it.
 
 ```js
+import { assert } from "@jsenv/assert"
+import { getUser } from "./user.js"
+
 // assuming you don't care about properties order
-const value = { foo: true, bar: true }
+const user = getUser()
 // make actual an object with your own property order
-const actual = { bar: value.bar, foo: value.foo }
-const expected = { bar: true, foo: true }
+const actual = { age: user.age, name: user.name }
+const expected = { age: 32, name: "sam" }
 assert({ actual, expected })
 ```
 
+</details>
+
 ## Assert subset of properties
 
+<details>
+  <summary>description</summary>
+
 You have an object and you care only about a part of it.
+
+```js
+export const getUser = () => {
+  return {
+    name: "sam",
+    age: 32,
+    friends: [], // poor sam :(
+  }
+}
+```
+
+Let's assume the important thing to test about `getUser` is
+the `name` and `age` properties returned on the object.
+
+</details>
+
+<details>
+  <summary>implementation</summary>
 
 In that case recreate a lighter object with less properties (only the one you care about).
 
 ```js
-// assuming you care only about bar and foo.
-// if there is more properties it's not important
-const value = { foo: true, bar: true, whatever: 42 }
-// make actual an object with only bar and foo
-const actual = { bar: value.bar, foo: value.foo }
-const expected = { bar: true, foo: true }
+import { assert } from "@jsenv/assert"
+import { getUser } from "./user.js"
+
+// assuming you care only about name and age
+const user = getUser()
+// make actual an object with only name and age
+const actual = { name: user.name, age: user.age }
+const expected = { name: "sam", age: 32 }
 assert({ actual, expected })
 ```
+
+</details>

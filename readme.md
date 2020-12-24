@@ -14,6 +14,7 @@ Opinionated test assertion.
 - [How it works](#How-it-works)
 - [Why opinionated ?](#Why-opinionated-)
 - [Examples](#Examples)
+- [AAA Pattern](#AAA-pattern)
 
 # Presentation
 
@@ -364,22 +365,6 @@ Personally, I tend to use only `assert` because having only on way of doing thin
 
 That being said, `@jsenv/assert` has two other assertions than can be used: `assert.any` and `assert.not`. They exists mostly because they are useful enough to potentially counterbalance the simplicity of using only one assertion.
 
-## AAA pattern
-
-The AAA pattern stands for Arrange, Act, Assert. This pattern is really great to organize code in test files.
-
-This pattern is referenced in Node.js best practices:
-
-> Structure your tests with 3 well-separated sections: Arrange, Act & Assert (AAA).
->
-> — Yoni Goldberg in [Structure tests by the AAA pattern](https://github.com/goldbergyoni/nodebestpractices/blob/061bd10c2a4e2ba3407d9e1205b0fe702ef82b57/sections/testingandquality/aaa.md)
-
-You can also check the following medium article for an other point of view.
-
-> The AAA (Arrange-Act-Assert) pattern has become almost a standard across the industry.
->
-> — Paulo Gomes in [Unit Testing and the Arrange, Act and Assert (AAA) Pattern](https://medium.com/@pjbgf/title-testing-code-ocd-and-the-aaa-pattern-df453975ab80)
-
 # Examples
 
 This part gives illustrates how `assert` can be used in common use cases.
@@ -722,3 +707,19 @@ assert({ actual, expected })
 ```
 
 </details>
+
+# AAA pattern
+
+The AAA pattern stands for Arrange, Act, Assert. This pattern is really great to organize code in test files.
+
+This pattern is referenced in Node.js best practices:
+
+> Structure your tests with 3 well-separated sections: Arrange, Act & Assert (AAA).
+>
+> — Yoni Goldberg in [Structure tests by the AAA pattern](https://github.com/goldbergyoni/nodebestpractices/blob/061bd10c2a4e2ba3407d9e1205b0fe702ef82b57/sections/testingandquality/aaa.md)
+
+You can also check the following medium article for an other point of view.
+
+> The AAA (Arrange-Act-Assert) pattern has become almost a standard across the industry.
+>
+> — Paulo Gomes in [Unit Testing and the Arrange, Act and Assert (AAA) Pattern](https://medium.com/@pjbgf/title-testing-code-ocd-and-the-aaa-pattern-df453975ab80)

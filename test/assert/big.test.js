@@ -1,4 +1,4 @@
-import { assert } from "../../index.js"
+import { assert } from "@jsenv/assert"
 
 const actual = [
   {

@@ -1,5 +1,5 @@
-import { assert } from "../../index.js"
-import { ensureErrorWithMessage } from "../ensureErrorWithMessage.js"
+import { assert } from "@jsenv/assert"
+import { ensureErrorWithMessage } from "@jsenv/assert/test/ensureErrorWithMessage.js"
 
 try {
   assert()

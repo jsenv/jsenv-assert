@@ -1,9 +1,11 @@
 import { inspect } from "@jsenv/inspect"
-import { createDetailedMessage } from "./createDetailedMessage.js"
+import { createDetailedMessage } from "@jsenv/logger"
 import { comparisonToPath } from "../comparisonToPath.js"
 
 export const propertiesComparisonToErrorMessage = (comparison) => {
-  if (comparison.type !== "properties") return undefined
+  if (comparison.type !== "properties") {
+    return undefined
+  }
 
   const path = comparisonToPath(comparison.parent)
   const missing = comparison.actual.missing
@@ -27,8 +29,8 @@ export const propertiesComparisonToErrorMessage = (comparison) => {
   }
 
   if (missingCount > 1 && extraCount === 0) {
-    return createDetailedMessage(`${missing} missing properties.`, {
-      "missing properties": inspect(unexpectedProperties),
+    return createDetailedMessage(`${missingCount} missing properties.`, {
+      "missing properties": inspect(missingProperties),
       "at": path,
     })
   }

@@ -1,5 +1,5 @@
-import { assert } from "../../index.js"
-import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMessage.js"
+import { assert } from "@jsenv/assert"
+import { ensureAssertionErrorWithMessage } from "@jsenv/assert/test/ensureAssertionErrorWithMessage.js"
 
 try {
   const actual = new Map()

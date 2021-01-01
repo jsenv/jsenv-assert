@@ -1,6 +1,6 @@
-import { assert } from "../../index.js"
-import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMessage.js"
-import { executeInNewContext } from "../executeInNewContext.js"
+import { assert } from "@jsenv/assert"
+import { ensureAssertionErrorWithMessage } from "@jsenv/assert/test/ensureAssertionErrorWithMessage.js"
+import { executeInNewContext } from "@jsenv/assert/test/executeInNewContext.js"
 
 {
   const actual = new Error()
@@ -101,8 +101,7 @@ global.Error.prototype
 TypeError({
   "constructor": function () {/* hidden */},
   "name": "TypeError",
-  "message": "",
-  "toString": () => {/* hidden */}
+  "message": ""
 })
 --- at ---
 value[[Prototype]]`,

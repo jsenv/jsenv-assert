@@ -1,6 +1,6 @@
 /* eslint-disable accessor-pairs */
-import { assert } from "../../index.js"
-import { ensureAssertionErrorWithMessage } from "../ensureAssertionErrorWithMessage.js"
+import { assert } from "@jsenv/assert"
+import { ensureAssertionErrorWithMessage } from "@jsenv/assert/test/ensureAssertionErrorWithMessage.js"
 
 {
   const actual = Object.defineProperty({}, "foo", { set: () => {} })

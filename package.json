@@ -19,7 +19,8 @@
 		".": {
 			"import": "./index.js",
 			"require": "./dist/commonjs/main.cjs"
-		}
+		},
+		"./": "./"
 	},
 	"main": "dist/commonjs/main.cjs",
 	"files": [

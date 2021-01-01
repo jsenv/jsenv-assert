@@ -2,6 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var inspect = require('@jsenv/inspect');
+
 const isComposite = value => {
   if (value === null) return false;
   if (typeof value === "object") return true;
@@ -768,489 +770,6 @@ const compareToStringReturnValue = (comparison, options) => {
   });
 };
 
-const valueToType = value => {
-  const primitiveType = valueToPrimitiveType(value);
-
-  if (primitiveType === "function") {
-    return {
-      compositeType: "Function"
-    };
-  }
-
-  if (primitiveType === "object") {
-    const compositeType = valueToCompositeType(value);
-    return {
-      compositeType
-    };
-  }
-
-  return {
-    primitiveType
-  };
-};
-const {
-  toString
-} = Object.prototype;
-
-const valueToCompositeType = object => {
-  if (typeof object === "object" && Object.getPrototypeOf(object) === null) return "Object";
-  const toStringResult = toString.call(object); // returns format is '[object ${tagName}]';
-  // and we want ${tagName}
-
-  const tagName = toStringResult.slice("[object ".length, -1);
-
-  if (tagName === "Object") {
-    const objectConstructorName = object.constructor.name;
-
-    if (objectConstructorName !== "Object") {
-      return objectConstructorName;
-    }
-  }
-
-  return tagName;
-};
-
-const valueToPrimitiveType = value => {
-  if (value === null) {
-    return "null";
-  }
-
-  if (value === undefined) {
-    return "undefined";
-  }
-
-  return typeof value;
-};
-
-const inspectBoolean = value => value.toString();
-
-const inspectNull = () => "null";
-
-const inspectNumber = value => {
-  return isNegativeZero$1(value) ? "-0" : value.toString();
-}; // Use this and instead of Object.is(value, -0)
-// because in some corner cases firefox returns false
-// for Object.is(-0, -0)
-
-const isNegativeZero$1 = value => {
-  return value === 0 && 1 / value === -Infinity;
-};
-
-// https://github.com/joliss/js-string-escape/blob/master/index.js
-// http://javascript.crockford.com/remedial.html
-const quote = value => {
-  const string = String(value);
-  let i = 0;
-  const j = string.length;
-  var escapedString = "";
-
-  while (i < j) {
-    const char = string[i];
-    let escapedChar;
-
-    if (char === '"' || char === "'" || char === "\\") {
-      escapedChar = `\\${char}`;
-    } else if (char === "\n") {
-      escapedChar = "\\n";
-    } else if (char === "\r") {
-      escapedChar = "\\r";
-    } else if (char === "\u2028") {
-      escapedChar = "\\u2028";
-    } else if (char === "\u2029") {
-      escapedChar = "\\u2029";
-    } else {
-      escapedChar = char;
-    }
-
-    escapedString += escapedChar;
-    i++;
-  }
-
-  return escapedString;
-};
-const preNewLineAndIndentation = (value, {
-  depth,
-  indentUsingTab,
-  indentSize
-}) => {
-  return `${newLineAndIndent({
-    count: depth + 1,
-    useTabs: indentUsingTab,
-    size: indentSize
-  })}${value}`;
-};
-
-const postNewLineAndIndentation = ({
-  depth,
-  indentUsingTab,
-  indentSize
-}) => {
-  return newLineAndIndent({
-    count: depth,
-    useTabs: indentUsingTab,
-    size: indentSize
-  });
-};
-
-const newLineAndIndent = ({
-  count,
-  useTabs,
-  size
-}) => {
-  if (useTabs) {
-    // eslint-disable-next-line prefer-template
-    return "\n" + "\t".repeat(count);
-  } // eslint-disable-next-line prefer-template
-
-
-  return "\n" + " ".repeat(count * size);
-};
-
-const wrapNewLineAndIndentation = (value, {
-  depth,
-  indentUsingTab,
-  indentSize
-}) => {
-  return `${preNewLineAndIndentation(value, {
-    depth,
-    indentUsingTab,
-    indentSize
-  })}${postNewLineAndIndentation({
-    depth,
-    indentUsingTab,
-    indentSize
-  })}`;
-};
-
-const inspectString = (value, {
-  singleQuote
-}) => {
-  const quotedValue = quote(value);
-  return singleQuote ? `'${quotedValue}'` : `"${quotedValue}"`;
-};
-
-const inspectSymbol = (value, {
-  nestedInspect,
-  parenthesis
-}) => {
-  const symbolDescription = symbolToDescription(value);
-  const symbolDescriptionSource = symbolDescription ? nestedInspect(symbolDescription) : "";
-  const symbolSource = `Symbol(${symbolDescriptionSource})`;
-  if (parenthesis) return `${symbolSource}`;
-  return symbolSource;
-};
-const symbolToDescription = "description" in Symbol.prototype ? symbol => symbol.description : symbol => {
-  const toStringResult = symbol.toString();
-  const openingParenthesisIndex = toStringResult.indexOf("(");
-  const closingParenthesisIndex = toStringResult.indexOf(")");
-  const symbolDescription = toStringResult.slice(openingParenthesisIndex + 1, closingParenthesisIndex);
-  return symbolDescription;
-};
-
-const inspectUndefined = () => "undefined";
-
-const primitiveMap = {
-  boolean: inspectBoolean,
-  null: inspectNull,
-  number: inspectNumber,
-  string: inspectString,
-  symbol: inspectSymbol,
-  undefined: inspectUndefined
-};
-
-const inspectConstructor = (value, {
-  parenthesis,
-  useNew
-}) => {
-  let formattedString = value;
-
-  if (parenthesis) {
-    formattedString = `(${value})`;
-  }
-
-  if (useNew) {
-    formattedString = `new ${formattedString}`;
-  }
-
-  return formattedString;
-};
-
-const inspectArray = (value, {
-  seen = [],
-  nestedInspect,
-  depth,
-  indentUsingTab,
-  indentSize,
-  parenthesis,
-  useNew
-}) => {
-  if (seen.indexOf(value) > -1) {
-    return "Symbol.for('circular')";
-  }
-
-  seen.push(value);
-  let valuesSource = "";
-  let i = 0;
-  const j = value.length;
-
-  while (i < j) {
-    const valueSource = value.hasOwnProperty(i) ? nestedInspect(value[i], {
-      seen
-    }) : "";
-
-    if (i === 0) {
-      valuesSource += valueSource;
-    } else {
-      valuesSource += `,${preNewLineAndIndentation(valueSource, {
-        depth,
-        indentUsingTab,
-        indentSize
-      })}`;
-    }
-
-    i++;
-  }
-
-  let arraySource;
-
-  if (valuesSource.length) {
-    arraySource = wrapNewLineAndIndentation(valuesSource, {
-      depth,
-      indentUsingTab,
-      indentSize
-    });
-  } else {
-    arraySource = "";
-  }
-
-  arraySource = `[${arraySource}]`;
-  return inspectConstructor(arraySource, {
-    parenthesis,
-    useNew
-  });
-};
-
-const inspectObject = (value, {
-  nestedInspect,
-  seen = [],
-  depth,
-  indentUsingTab,
-  indentSize,
-  objectConstructor,
-  parenthesis,
-  useNew
-}) => {
-  if (seen.indexOf(value) > -1) return "Symbol.for('circular')";
-  seen.push(value);
-  const propertySourceArray = [];
-  Object.getOwnPropertyNames(value).forEach(propertyName => {
-    const propertyNameAsNumber = parseInt(propertyName, 10);
-    const propertyNameSource = nestedInspect(Number.isInteger(propertyNameAsNumber) ? propertyNameAsNumber : propertyName);
-    propertySourceArray.push({
-      nameOrSymbolSource: propertyNameSource,
-      valueSource: nestedInspect(value[propertyName], {
-        seen
-      })
-    });
-  });
-  Object.getOwnPropertySymbols(value).forEach(symbol => {
-    propertySourceArray.push({
-      nameOrSymbolSource: `[${nestedInspect(symbol)}]`,
-      valueSource: nestedInspect(value[symbol], {
-        seen
-      })
-    });
-  });
-  let propertiesSource = "";
-  propertySourceArray.forEach(({
-    nameOrSymbolSource,
-    valueSource
-  }, index) => {
-    if (index === 0) {
-      propertiesSource += `${nameOrSymbolSource}: ${valueSource}`;
-    } else {
-      propertiesSource += `,${preNewLineAndIndentation(`${nameOrSymbolSource}: ${valueSource}`, {
-        depth,
-        indentUsingTab,
-        indentSize
-      })}`;
-    }
-  });
-  let objectSource;
-
-  if (propertiesSource.length) {
-    objectSource = `${wrapNewLineAndIndentation(propertiesSource, {
-      depth,
-      indentUsingTab,
-      indentSize
-    })}`;
-  } else {
-    objectSource = "";
-  }
-
-  if (objectConstructor) {
-    objectSource = `Object({${objectSource}})`;
-  } else {
-    objectSource = `{${objectSource}}`;
-  }
-
-  return inspectConstructor(objectSource, {
-    parenthesis,
-    useNew
-  });
-};
-
-const inspectFunction = (value, {
-  showFunctionBody,
-  parenthesis,
-  depth
-}) => {
-  let functionSource;
-
-  if (showFunctionBody) {
-    functionSource = value.toString();
-  } else {
-    const isArrowFunction = value.prototype === undefined;
-    const head = isArrowFunction ? "() =>" : `function ${depth === 0 ? value.name : ""}()`;
-    functionSource = `${head} {/* hidden */}`;
-  }
-
-  if (parenthesis) {
-    return `(${functionSource})`;
-  }
-
-  return functionSource;
-};
-
-const inspectDate = (value, {
-  nestedInspect,
-  useNew,
-  parenthesis
-}) => {
-  const dateSource = nestedInspect(value.valueOf());
-  return inspectConstructor(`Date(${dateSource})`, {
-    useNew,
-    parenthesis
-  });
-};
-
-const inspectNumberObject = (value, {
-  nestedInspect,
-  useNew,
-  parenthesis
-}) => {
-  const numberSource = nestedInspect(value.valueOf());
-  return inspectConstructor(`Number(${numberSource})`, {
-    useNew,
-    parenthesis
-  });
-};
-
-const inspectStringObject = (value, {
-  nestedInspect,
-  useNew,
-  parenthesis
-}) => {
-  const stringSource = nestedInspect(value.valueOf());
-  return inspectConstructor(`String(${stringSource})`, {
-    useNew,
-    parenthesis
-  });
-};
-
-const inspectBooleanObject = (value, {
-  nestedInspect,
-  useNew,
-  parenthesis
-}) => {
-  const booleanSource = nestedInspect(value.valueOf());
-  return inspectConstructor(`Boolean(${booleanSource})`, {
-    useNew,
-    parenthesis
-  });
-};
-
-const inspectError = (error, {
-  nestedInspect,
-  useNew,
-  parenthesis
-}) => {
-  const messageSource = nestedInspect(error.message);
-  const errorSource = inspectConstructor(`${errorToConstructorName(error)}(${messageSource})`, {
-    useNew,
-    parenthesis
-  });
-  return errorSource;
-};
-
-const errorToConstructorName = ({
-  name
-}) => {
-  if (derivedErrorNameArray.includes(name)) {
-    return name;
-  }
-
-  return "Error";
-}; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Error_types
-
-
-const derivedErrorNameArray = ["EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-
-const inspectRegExp = value => value.toString();
-
-const compositeMap = {
-  Array: inspectArray,
-  Boolean: inspectBooleanObject,
-  Error: inspectError,
-  Date: inspectDate,
-  Function: inspectFunction,
-  Number: inspectNumberObject,
-  Object: inspectObject,
-  RegExp: inspectRegExp,
-  String: inspectStringObject
-};
-
-const inspect = (value, {
-  parenthesis = false,
-  singleQuote = false,
-  useNew = false,
-  objectConstructor = false,
-  showFunctionBody = false,
-  indentUsingTab = false,
-  indentSize = 2
-} = {}) => {
-  const scopedInspect = (scopedValue, scopedOptions) => {
-    const {
-      primitiveType,
-      compositeType
-    } = valueToType(scopedValue);
-    const options = { ...scopedOptions,
-      nestedInspect: (nestedValue, nestedOptions = {}) => {
-        return scopedInspect(nestedValue, { ...scopedOptions,
-          depth: scopedOptions.depth + 1,
-          ...nestedOptions
-        });
-      }
-    };
-    if (primitiveType) return primitiveMap[primitiveType](scopedValue, options);
-    if (compositeType in compositeMap) return compositeMap[compositeType](scopedValue, options);
-    return inspectConstructor(`${compositeType}(${inspectObject(scopedValue, options)})`, { ...options,
-      parenthesis: false
-    });
-  };
-
-  return scopedInspect(value, {
-    parenthesis,
-    singleQuote,
-    useNew,
-    objectConstructor,
-    showFunctionBody,
-    indentUsingTab,
-    indentSize,
-    depth: 0
-  });
-};
-
 const symbolToWellKnownSymbol = symbol => {
   const wellKnownSymbolName = Object.getOwnPropertyNames(Symbol).find(name => symbol === Symbol[name]);
 
@@ -1258,22 +777,22 @@ const symbolToWellKnownSymbol = symbol => {
     return `Symbol${propertyToAccessorString(wellKnownSymbolName)}`;
   }
 
-  const description = symbolToDescription$1(symbol);
+  const description = symbolToDescription(symbol);
 
   if (description) {
     const key = Symbol.keyFor(symbol);
 
     if (key) {
-      return `Symbol.for(${inspect(description)})`;
+      return `Symbol.for(${inspect.inspect(description)})`;
     }
 
-    return `Symbol(${inspect(description)})`;
+    return `Symbol(${inspect.inspect(description)})`;
   }
 
   return `Symbol()`;
 };
 
-const symbolToDescription$1 = symbol => {
+const symbolToDescription = symbol => {
   const toStringResult = symbol.toString();
   const openingParenthesisIndex = toStringResult.indexOf("(");
   const closingParenthesisIndex = toStringResult.indexOf(")");
@@ -1286,7 +805,7 @@ const propertyNameToDotNotationAllowed = propertyName => {
 
 const propertyToAccessorString = property => {
   if (typeof property === "number") {
-    return `[${inspect(property)}]`;
+    return `[${inspect.inspect(property)}]`;
   }
 
   if (typeof property === "string") {
@@ -1296,7 +815,7 @@ const propertyToAccessorString = property => {
       return `.${property}`;
     }
 
-    return `[${inspect(property)}]`;
+    return `[${inspect.inspect(property)}]`;
   }
 
   return `[${symbolToWellKnownSymbol(property)}]`;
@@ -1477,7 +996,7 @@ if (typeof window === "object") {
 }
 
 const valueToString = value => {
-  return valueToWellKnown(value) || inspect(value);
+  return valueToWellKnown(value) || inspect.inspect(value);
 };
 
 const anyComparisonToErrorMessage = comparison => {
@@ -1651,7 +1170,7 @@ const prototypeComparisonToErrorMessage = comparison => {
 
     if (prototype === rootComparison.expected) return "expected";
     if (prototype === rootComparison.actual) return "actual";
-    return inspect(prototype);
+    return inspect.inspect(prototype);
   };
 
   const expectedPrototype = prototypeComparison.expected;
@@ -1705,28 +1224,28 @@ const propertiesComparisonToErrorMessage = comparison => {
 
   if (missingCount === 1 && extraCount === 0) {
     return createDetailedMessage("1 missing property.", {
-      "missing property": inspect(missingProperties),
+      "missing property": inspect.inspect(missingProperties),
       "at": path
     });
   }
 
   if (missingCount > 1 && extraCount === 0) {
     return createDetailedMessage(`${missing} missing properties.`, {
-      "missing properties": inspect(unexpectedProperties),
+      "missing properties": inspect.inspect(unexpectedProperties),
       "at": path
     });
   }
 
   if (missingCount === 0 && extraCount === 1) {
     return createDetailedMessage(`1 unexpected property.`, {
-      "unexpected property": inspect(unexpectedProperties),
+      "unexpected property": inspect.inspect(unexpectedProperties),
       "at": path
     });
   }
 
   if (missingCount === 0 && extraCount > 1) {
     return createDetailedMessage(`${extraCount} unexpected properties.`, {
-      "unexpected properties": inspect(unexpectedProperties),
+      "unexpected properties": inspect.inspect(unexpectedProperties),
       "at": path
     });
   }
@@ -1746,8 +1265,8 @@ const propertiesComparisonToErrorMessage = comparison => {
   }
 
   return createDetailedMessage(message, {
-    [missingCount === 1 ? "missing property" : "missing properties"]: inspect(missingProperties),
-    [extraCount === 1 ? "unexpected property" : "unexpected properties"]: inspect(unexpectedProperties),
+    [missingCount === 1 ? "missing property" : "missing properties"]: inspect.inspect(missingProperties),
+    [extraCount === 1 ? "unexpected property" : "unexpected properties"]: inspect.inspect(unexpectedProperties),
     at: path
   });
 };
@@ -1779,7 +1298,7 @@ ${expectedPropertiesOrder.join(`
 ${path}`;
 
 const propertyNameArrayToString = propertyNameArray => {
-  return propertyNameArray.map(propertyName => inspect(propertyName));
+  return propertyNameArray.map(propertyName => inspect.inspect(propertyName));
 };
 
 const symbolsComparisonToErrorMessage = comparison => {
@@ -1846,7 +1365,7 @@ ${missingSymbols.join(`
 ${path}`;
 
 const symbolArrayToString = symbolArray => {
-  return symbolArray.map(symbol => inspect(symbol));
+  return symbolArray.map(symbol => inspect.inspect(symbol));
 };
 
 const symbolsOrderComparisonToErrorMessage = comparison => {
@@ -1876,7 +1395,7 @@ ${expectedSymbolsOrder.join(`
 ${path}`;
 
 const symbolArrayToString$1 = symbolArray => {
-  return symbolArray.map(symbol => inspect(symbol));
+  return symbolArray.map(symbol => inspect.inspect(symbol));
 };
 
 const setSizeComparisonToMessage = comparison => {
@@ -1968,7 +1487,7 @@ const arrayLengthComparisonToMessage = comparison => {
     return createDetailedMessage(`an array is smaller than expected.`, {
       "array length found": actualLength,
       "array length expected": expectedLength,
-      "missing values": inspect(missingValues),
+      "missing values": inspect.inspect(missingValues),
       "at": path
     });
   }
@@ -1977,7 +1496,7 @@ const arrayLengthComparisonToMessage = comparison => {
   return createDetailedMessage(`an array is bigger than expected.`, {
     "array length found": actualLength,
     "array length expected": expectedLength,
-    "extra values": inspect(extraValues),
+    "extra values": inspect.inspect(extraValues),
     "at": path
   });
 };
@@ -2100,4 +1619,5 @@ const _assert = ({
 exports.assert = assert;
 exports.createAssertionError = createAssertionError;
 exports.isAssertionError = isAssertionError;
+
 //# sourceMappingURL=main.cjs.map

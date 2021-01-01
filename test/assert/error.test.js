@@ -101,8 +101,7 @@ global.Error.prototype
 TypeError({
   "constructor": function () {/* hidden */},
   "name": "TypeError",
-  "message": "",
-  "toString": () => {/* hidden */}
+  "message": ""
 })
 --- at ---
 value[[Prototype]]`,

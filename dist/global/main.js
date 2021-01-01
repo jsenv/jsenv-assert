@@ -1,4 +1,4 @@
-var __jsenv_assert__ = function (exports) {
+var __jsenv_assert__ = (function (exports) {
   'use strict';
 
   var nativeTypeOf = function nativeTypeOf(obj) {
@@ -10,9 +10,8 @@ var __jsenv_assert__ = function (exports) {
   };
 
   var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? nativeTypeOf : customTypeOf;
+
   /* eslint-disable no-eq-null, eqeqeq */
-
-
   function arrayLikeToArray(arr, len) {
     if (len == null || len > arr.length) len = arr.length;
     var arr2 = new Array(len);
@@ -23,27 +22,29 @@ var __jsenv_assert__ = function (exports) {
 
     return arr2;
   }
+
   /* eslint-disable consistent-return */
-
-
   function unsupportedIterableToArray(o, minLen) {
     if (!o) return;
     if (typeof o === "string") return arrayLikeToArray(o, minLen);
     var n = Object.prototype.toString.call(o).slice(8, -1);
     if (n === "Object" && o.constructor) n = o.constructor.name;
-    if (n === "Map" || n === "Set") return Array.from(n);
+    if (n === "Map" || n === "Set") return Array.from(o);
     if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
   }
+
   /* eslint-disable eqeqeq, no-eq-null */
   // n: next
   // e: error (called whenever something throws)
   // f: finish (always called at the end)
 
+  function createForOfIteratorHelper(o, allowArrayLike) {
+    var it;
 
-  function createForOfIteratorHelper(o) {
     if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
       // Fallback for engines without symbol support
-      if (Array.isArray(o) || (o = unsupportedIterableToArray(o))) {
+      if (Array.isArray(o) || (it = unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+        if (it) o = it;
         var i = 0;
 
         var F = function F() {};
@@ -69,7 +70,6 @@ var __jsenv_assert__ = function (exports) {
       throw new TypeError("Invalid attempt to iterate non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
     }
 
-    var it;
     var normalCompletion = true;
     var didErr = false;
     var err;
@@ -96,7 +96,7 @@ var __jsenv_assert__ = function (exports) {
     };
   }
 
-  var _defineProperty = function (obj, key, value) {
+  var _defineProperty = (function (obj, key, value) {
     // Shortcircuit the slow defineProperty path when possible.
     // We are trying to avoid issues where setters defined on the
     // prototype cause side effects under the fast path of simple
@@ -114,9 +114,9 @@ var __jsenv_assert__ = function (exports) {
     }
 
     return obj;
-  };
+  });
 
-  function _objectSpread(target) {
+  function _objectSpread (target) {
     for (var i = 1; i < arguments.length; i++) {
       // eslint-disable-next-line prefer-rest-params
       var source = arguments[i] === null ? {} : arguments[i];
@@ -141,7 +141,6 @@ var __jsenv_assert__ = function (exports) {
   // filters on symbol properties only. Returned string properties are always
   // enumerable. It is good to use in objectSpread.
 
-
   function ownKeys(object, enumerableOnly) {
     var keys = Object.keys(object);
 
@@ -157,7 +156,7 @@ var __jsenv_assert__ = function (exports) {
     return keys;
   }
 
-  var objectWithoutPropertiesLoose = function (source, excluded) {
+  var objectWithoutPropertiesLoose = (function (source, excluded) {
     if (source === null) return {};
     var target = {};
     var sourceKeys = Object.keys(source);
@@ -171,9 +170,9 @@ var __jsenv_assert__ = function (exports) {
     }
 
     return target;
-  };
+  });
 
-  var _objectWithoutProperties = function (source, excluded) {
+  var _objectWithoutProperties = (function (source, excluded) {
     if (source === null) return {};
     var target = objectWithoutPropertiesLoose(source, excluded);
     var key;
@@ -191,7 +190,7 @@ var __jsenv_assert__ = function (exports) {
     }
 
     return target;
-  };
+  });
 
   var isComposite = function isComposite(value) {
     if (value === null) return false;
@@ -199,14 +198,12 @@ var __jsenv_assert__ = function (exports) {
     if (typeof value === "function") return true;
     return false;
   };
-
   var isPrimitive = function isPrimitive(value) {
     return !isComposite(value);
   };
+
   /* eslint-disable no-use-before-define */
   // https://github.com/dmail/dom/blob/e55a8c7b4cda6be2f7a4b1222f96d028a379b67f/src/visit.js#L89
-
-
   var findPreviousComparison = function findPreviousComparison(comparison, predicate) {
     var createPreviousIterator = function createPreviousIterator() {
       var current = comparison;
@@ -293,35 +290,30 @@ var __jsenv_assert__ = function (exports) {
       return constructor && constructor.name === "RegExp";
     });
   };
-
   var isArray = function isArray(value) {
     return somePrototypeMatch(value, function (_ref2) {
       var constructor = _ref2.constructor;
       return constructor && constructor.name === "Array";
     });
   };
-
   var isError = function isError(value) {
     return somePrototypeMatch(value, function (_ref3) {
       var constructor = _ref3.constructor;
       return constructor && constructor.name === "Error";
     });
   };
-
   var isSet = function isSet(value) {
     return somePrototypeMatch(value, function (_ref4) {
       var constructor = _ref4.constructor;
       return constructor && constructor.name === "Set";
     });
   };
-
   var isMap = function isMap(value) {
     return somePrototypeMatch(value, function (_ref5) {
       var constructor = _ref5.constructor;
       return constructor && constructor.name === "Map";
     });
   };
-
   var somePrototypeMatch = function somePrototypeMatch(value, predicate) {
     var prototype = Object.getPrototypeOf(value);
 
@@ -347,7 +339,6 @@ var __jsenv_assert__ = function (exports) {
     });
     return comparison;
   };
-
   var expectationSymbol = Symbol.for("expectation");
 
   var createExpectation = function createExpectation(data) {
@@ -375,7 +366,6 @@ var __jsenv_assert__ = function (exports) {
       }
     });
   };
-
   var createAnyExpectation = function createAnyExpectation(expectedConstructor) {
     return createExpectation({
       type: "any",
@@ -410,7 +400,7 @@ var __jsenv_assert__ = function (exports) {
         expected = comparison.expected;
 
     if (_typeof(expected) === "object" && expected !== null && expectationSymbol in expected) {
-      subcompare(comparison, _objectSpread({}, expected.data, {
+      subcompare(comparison, _objectSpread(_objectSpread({}, expected.data), {}, {
         actual: actual,
         options: options
       }));
@@ -1083,7 +1073,6 @@ var __jsenv_assert__ = function (exports) {
       primitiveType: primitiveType
     };
   };
-
   var toString = Object.prototype.toString;
 
   var valueToCompositeType = function valueToCompositeType(object) {
@@ -1130,13 +1119,12 @@ var __jsenv_assert__ = function (exports) {
   // because in some corner cases firefox returns false
   // for Object.is(-0, -0)
 
-
   var isNegativeZero$1 = function isNegativeZero(value) {
     return value === 0 && 1 / value === -Infinity;
-  }; // https://github.com/joliss/js-string-escape/blob/master/index.js
+  };
+
+  // https://github.com/joliss/js-string-escape/blob/master/index.js
   // http://javascript.crockford.com/remedial.html
-
-
   var quote = function quote(value) {
     var string = String(value);
     var i = 0;
@@ -1167,7 +1155,6 @@ var __jsenv_assert__ = function (exports) {
 
     return escapedString;
   };
-
   var preNewLineAndIndentation = function preNewLineAndIndentation(value, _ref) {
     var depth = _ref.depth,
         indentUsingTab = _ref.indentUsingTab,
@@ -1234,7 +1221,6 @@ var __jsenv_assert__ = function (exports) {
     if (parenthesis) return "".concat(symbolSource);
     return symbolSource;
   };
-
   var symbolToDescription = "description" in Symbol.prototype ? function (symbol) {
     return symbol.description;
   } : function (symbol) {
@@ -1528,10 +1514,10 @@ var __jsenv_assert__ = function (exports) {
           primitiveType = _valueToType.primitiveType,
           compositeType = _valueToType.compositeType;
 
-      var options = _objectSpread({}, scopedOptions, {
+      var options = _objectSpread(_objectSpread({}, scopedOptions), {}, {
         nestedInspect: function nestedInspect(nestedValue) {
           var nestedOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-          return scopedInspect(nestedValue, _objectSpread({}, scopedOptions, {
+          return scopedInspect(nestedValue, _objectSpread(_objectSpread({}, scopedOptions), {}, {
             depth: scopedOptions.depth + 1
           }, nestedOptions));
         }
@@ -1539,7 +1525,7 @@ var __jsenv_assert__ = function (exports) {
 
       if (primitiveType) return primitiveMap[primitiveType](scopedValue, options);
       if (compositeType in compositeMap) return compositeMap[compositeType](scopedValue, options);
-      return inspectConstructor("".concat(compositeType, "(").concat(inspectObject(scopedValue, options), ")"), _objectSpread({}, options, {
+      return inspectConstructor("".concat(compositeType, "(").concat(inspectObject(scopedValue, options), ")"), _objectSpread(_objectSpread({}, options), {}, {
         parenthesis: false
       }));
     };
@@ -1608,9 +1594,8 @@ var __jsenv_assert__ = function (exports) {
 
     return "[".concat(symbolToWellKnownSymbol(property), "]");
   };
+
   /* eslint-disable no-use-before-define */
-
-
   var comparisonToPath = function comparisonToPath(comparison) {
     var name = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : "value";
     var comparisonPath = [];
@@ -1714,22 +1699,22 @@ var __jsenv_assert__ = function (exports) {
     return path;
   };
 
-  var arrayWithoutHoles = function (arr) {
+  var arrayWithoutHoles = (function (arr) {
     if (Array.isArray(arr)) return arrayLikeToArray(arr);
-  }; // eslint-disable-next-line consistent-return
+  });
 
-
-  var iterableToArray = function (iter) {
+  // eslint-disable-next-line consistent-return
+  var iterableToArray = (function (iter) {
     if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
-  };
+  });
 
-  var nonIterableSpread = function () {
+  var nonIterableSpread = (function () {
     throw new TypeError("Invalid attempt to spread non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-  };
+  });
 
-  var _toConsumableArray = function (arr) {
+  var _toConsumableArray = (function (arr) {
     return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
-  };
+  });
 
   var valueToWellKnown = function valueToWellKnown(value) {
     var compositeWellKnownPath = valueToCompositeWellKnownPath(value);
@@ -1742,7 +1727,6 @@ var __jsenv_assert__ = function (exports) {
 
     return null;
   }; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap
-
 
   var compositeWellKnownMap = new WeakMap();
   var primitiveWellKnownMap = new Map();
@@ -1991,7 +1975,10 @@ var __jsenv_assert__ = function (exports) {
   var propertiesComparisonToErrorMessage = function propertiesComparisonToErrorMessage(comparison) {
     var _createDetailedMessag;
 
-    if (comparison.type !== "properties") return undefined;
+    if (comparison.type !== "properties") {
+      return undefined;
+    }
+
     var path = comparisonToPath(comparison.parent);
     var missing = comparison.actual.missing;
     var extra = comparison.actual.extra;
@@ -2014,8 +2001,8 @@ var __jsenv_assert__ = function (exports) {
     }
 
     if (missingCount > 1 && extraCount === 0) {
-      return createDetailedMessage("".concat(missing, " missing properties."), {
-        "missing properties": inspect(unexpectedProperties),
+      return createDetailedMessage("".concat(missingCount, " missing properties."), {
+        "missing properties": inspect(missingProperties),
         "at": path
       });
     }
@@ -2237,9 +2224,8 @@ var __jsenv_assert__ = function (exports) {
       "at": path
     });
   };
+
   /* eslint-disable import/max-dependencies */
-
-
   var comparisonToErrorMessage = function comparisonToErrorMessage(comparison) {
     var failedComparison = deepestComparison(comparison);
     return firstFunctionReturningSomething([anyComparisonToErrorMessage, mapEntryComparisonToErrorMessage, notComparisonToErrorMessage, prototypeComparisonToErrorMessage, referenceComparisonToErrorMessage, propertiesComparisonToErrorMessage, propertiesOrderComparisonToErrorMessage, symbolsComparisonToErrorMessage, symbolsOrderComparisonToErrorMessage, setSizeComparisonToMessage, arrayLengthComparisonToMessage], failedComparison) || defaultComparisonToErrorMessage(failedComparison);
@@ -2278,7 +2264,6 @@ var __jsenv_assert__ = function (exports) {
   var isAssertionError = function isAssertionError(value) {
     return value && _typeof(value) === "object" && value.name === "AssertionError";
   };
-
   var createAssertionError = function createAssertionError(message) {
     var error = new Error(message);
     error.name = "AssertionError";
@@ -2362,6 +2347,11 @@ var __jsenv_assert__ = function (exports) {
   exports.assert = assert;
   exports.createAssertionError = createAssertionError;
   exports.isAssertionError = isAssertionError;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
+
   return exports;
-}({});
-//# sourceMappingURL=./main.js.map
+
+}({}));
+
+//# sourceMappingURL=main.js.map

@@ -26,7 +26,7 @@ function unsupportedIterableToArray(o, minLen) {
   if (typeof o === "string") return arrayLikeToArray(o, minLen);
   var n = Object.prototype.toString.call(o).slice(8, -1);
   if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(n);
+  if (n === "Map" || n === "Set") return Array.from(o);
   if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
 }
 
@@ -35,10 +35,13 @@ function unsupportedIterableToArray(o, minLen) {
 // e: error (called whenever something throws)
 // f: finish (always called at the end)
 
-function createForOfIteratorHelper(o) {
+function createForOfIteratorHelper(o, allowArrayLike) {
+  var it;
+
   if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
     // Fallback for engines without symbol support
-    if (Array.isArray(o) || (o = unsupportedIterableToArray(o))) {
+    if (Array.isArray(o) || (it = unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+      if (it) o = it;
       var i = 0;
 
       var F = function F() {};
@@ -64,7 +67,6 @@ function createForOfIteratorHelper(o) {
     throw new TypeError("Invalid attempt to iterate non-iterable instance.\\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
   }
 
-  var it;
   var normalCompletion = true;
   var didErr = false;
   var err;
@@ -395,7 +397,7 @@ var defaultComparer = function defaultComparer(comparison, options) {
       expected = comparison.expected;
 
   if (_typeof(expected) === "object" && expected !== null && expectationSymbol in expected) {
-    subcompare(comparison, _objectSpread({}, expected.data, {
+    subcompare(comparison, _objectSpread(_objectSpread({}, expected.data), {}, {
       actual: actual,
       options: options
     }));
@@ -1509,10 +1511,10 @@ var inspect = function inspect(value) {
         primitiveType = _valueToType.primitiveType,
         compositeType = _valueToType.compositeType;
 
-    var options = _objectSpread({}, scopedOptions, {
+    var options = _objectSpread(_objectSpread({}, scopedOptions), {}, {
       nestedInspect: function nestedInspect(nestedValue) {
         var nestedOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-        return scopedInspect(nestedValue, _objectSpread({}, scopedOptions, {
+        return scopedInspect(nestedValue, _objectSpread(_objectSpread({}, scopedOptions), {}, {
           depth: scopedOptions.depth + 1
         }, nestedOptions));
       }
@@ -1520,7 +1522,7 @@ var inspect = function inspect(value) {
 
     if (primitiveType) return primitiveMap[primitiveType](scopedValue, options);
     if (compositeType in compositeMap) return compositeMap[compositeType](scopedValue, options);
-    return inspectConstructor("".concat(compositeType, "(").concat(inspectObject(scopedValue, options), ")"), _objectSpread({}, options, {
+    return inspectConstructor("".concat(compositeType, "(").concat(inspectObject(scopedValue, options), ")"), _objectSpread(_objectSpread({}, options), {}, {
       parenthesis: false
     }));
   };
@@ -1970,7 +1972,10 @@ var createDetailedMessage = function createDetailedMessage(message) {
 var propertiesComparisonToErrorMessage = function propertiesComparisonToErrorMessage(comparison) {
   var _createDetailedMessag;
 
-  if (comparison.type !== "properties") return undefined;
+  if (comparison.type !== "properties") {
+    return undefined;
+  }
+
   var path = comparisonToPath(comparison.parent);
   var missing = comparison.actual.missing;
   var extra = comparison.actual.extra;
@@ -1993,8 +1998,8 @@ var propertiesComparisonToErrorMessage = function propertiesComparisonToErrorMes
   }
 
   if (missingCount > 1 && extraCount === 0) {
-    return createDetailedMessage("".concat(missing, " missing properties."), {
-      "missing properties": inspect(unexpectedProperties),
+    return createDetailedMessage("".concat(missingCount, " missing properties."), {
+      "missing properties": inspect(missingProperties),
       "at": path
     });
   }
@@ -2337,4 +2342,5 @@ var _assert = function _assert(_ref) {
 };
 
 export { assert, createAssertionError, isAssertionError };
+
 //# sourceMappingURL=main.js.map

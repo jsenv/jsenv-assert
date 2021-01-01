@@ -3,6 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var inspect = require('@jsenv/inspect');
+var logger = require('@jsenv/logger');
 
 const isComposite = value => {
   if (value === null) return false;
@@ -1194,20 +1195,11 @@ ${expectedPrototype}
 --- at ---
 ${path}`;
 
-const createDetailedMessage = (message, details = {}) => {
-  let string = `${message}`;
-  Object.keys(details).forEach(key => {
-    const value = details[key];
-    string += `
---- ${key} ---
-${Array.isArray(value) ? value.join(`
-`) : value}`;
-  });
-  return string;
-};
-
 const propertiesComparisonToErrorMessage = comparison => {
-  if (comparison.type !== "properties") return undefined;
+  if (comparison.type !== "properties") {
+    return undefined;
+  }
+
   const path = comparisonToPath(comparison.parent);
   const missing = comparison.actual.missing;
   const extra = comparison.actual.extra;
@@ -1223,28 +1215,28 @@ const propertiesComparisonToErrorMessage = comparison => {
   });
 
   if (missingCount === 1 && extraCount === 0) {
-    return createDetailedMessage("1 missing property.", {
+    return logger.createDetailedMessage("1 missing property.", {
       "missing property": inspect.inspect(missingProperties),
       "at": path
     });
   }
 
   if (missingCount > 1 && extraCount === 0) {
-    return createDetailedMessage(`${missing} missing properties.`, {
-      "missing properties": inspect.inspect(unexpectedProperties),
+    return logger.createDetailedMessage(`${missingCount} missing properties.`, {
+      "missing properties": inspect.inspect(missingProperties),
       "at": path
     });
   }
 
   if (missingCount === 0 && extraCount === 1) {
-    return createDetailedMessage(`1 unexpected property.`, {
+    return logger.createDetailedMessage(`1 unexpected property.`, {
       "unexpected property": inspect.inspect(unexpectedProperties),
       "at": path
     });
   }
 
   if (missingCount === 0 && extraCount > 1) {
-    return createDetailedMessage(`${extraCount} unexpected properties.`, {
+    return logger.createDetailedMessage(`${extraCount} unexpected properties.`, {
       "unexpected properties": inspect.inspect(unexpectedProperties),
       "at": path
     });
@@ -1264,7 +1256,7 @@ const propertiesComparisonToErrorMessage = comparison => {
     message += ` and ${extraCount} unexpected properties.`;
   }
 
-  return createDetailedMessage(message, {
+  return logger.createDetailedMessage(message, {
     [missingCount === 1 ? "missing property" : "missing properties"]: inspect.inspect(missingProperties),
     [extraCount === 1 ? "unexpected property" : "unexpected properties"]: inspect.inspect(unexpectedProperties),
     at: path
@@ -1484,7 +1476,7 @@ const arrayLengthComparisonToMessage = comparison => {
 
   if (actualLength < expectedLength) {
     const missingValues = expectedArray.slice(actualLength);
-    return createDetailedMessage(`an array is smaller than expected.`, {
+    return logger.createDetailedMessage(`an array is smaller than expected.`, {
       "array length found": actualLength,
       "array length expected": expectedLength,
       "missing values": inspect.inspect(missingValues),
@@ -1493,7 +1485,7 @@ const arrayLengthComparisonToMessage = comparison => {
   }
 
   const extraValues = actualArray.slice(expectedLength);
-  return createDetailedMessage(`an array is bigger than expected.`, {
+  return logger.createDetailedMessage(`an array is bigger than expected.`, {
     "array length found": actualLength,
     "array length expected": expectedLength,
     "extra values": inspect.inspect(extraValues),

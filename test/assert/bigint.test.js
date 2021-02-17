@@ -1,5 +1,4 @@
 /* globals BigInt */
-/* eslint-disable no-eval */
 import { assert } from "@jsenv/assert"
 import { ensureAssertionErrorWithMessage } from "@jsenv/assert/test/ensureAssertionErrorWithMessage.js"
 

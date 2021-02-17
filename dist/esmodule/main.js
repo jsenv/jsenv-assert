@@ -1073,7 +1073,10 @@ var valueToType = function valueToType(value) {
 var toString = Object.prototype.toString;
 
 var valueToCompositeType = function valueToCompositeType(object) {
-  if (_typeof(object) === "object" && Object.getPrototypeOf(object) === null) return "Object";
+  if (_typeof(object) === "object" && Object.getPrototypeOf(object) === null) {
+    return "Object";
+  }
+
   var toStringResult = toString.call(object); // returns format is '[object ${tagName}]';
   // and we want ${tagName}
 
@@ -1232,13 +1235,18 @@ var inspectUndefined = function inspectUndefined() {
   return "undefined";
 };
 
+var inspectBigInt = function inspectBigInt(value) {
+  return "".concat(value, "n");
+};
+
 var primitiveMap = {
   boolean: inspectBoolean,
   null: inspectNull,
   number: inspectNumber,
   string: inspectString,
   symbol: inspectSymbol,
-  undefined: inspectUndefined
+  undefined: inspectUndefined,
+  bigint: inspectBigInt
 };
 
 var inspectConstructor = function inspectConstructor(value, _ref) {
@@ -1313,6 +1321,91 @@ var inspectArray = function inspectArray(value, _ref) {
   });
 };
 
+var inspectBigIntObject = function inspectBigIntObject(value, _ref) {
+  var nestedInspect = _ref.nestedInspect;
+  var bigIntSource = nestedInspect(value.valueOf());
+  return "BigInt(".concat(bigIntSource, ")");
+};
+
+var inspectBooleanObject = function inspectBooleanObject(value, _ref) {
+  var nestedInspect = _ref.nestedInspect,
+      useNew = _ref.useNew,
+      parenthesis = _ref.parenthesis;
+  var booleanSource = nestedInspect(value.valueOf());
+  return inspectConstructor("Boolean(".concat(booleanSource, ")"), {
+    useNew: useNew,
+    parenthesis: parenthesis
+  });
+};
+
+var inspectError = function inspectError(error, _ref) {
+  var nestedInspect = _ref.nestedInspect,
+      useNew = _ref.useNew,
+      parenthesis = _ref.parenthesis;
+  var messageSource = nestedInspect(error.message);
+  var errorSource = inspectConstructor("".concat(errorToConstructorName(error), "(").concat(messageSource, ")"), {
+    useNew: useNew,
+    parenthesis: parenthesis
+  });
+  return errorSource;
+};
+
+var errorToConstructorName = function errorToConstructorName(_ref2) {
+  var name = _ref2.name;
+
+  if (derivedErrorNameArray.includes(name)) {
+    return name;
+  }
+
+  return "Error";
+}; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Error_types
+
+
+var derivedErrorNameArray = ["EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
+
+var inspectDate = function inspectDate(value, _ref) {
+  var nestedInspect = _ref.nestedInspect,
+      useNew = _ref.useNew,
+      parenthesis = _ref.parenthesis;
+  var dateSource = nestedInspect(value.valueOf());
+  return inspectConstructor("Date(".concat(dateSource, ")"), {
+    useNew: useNew,
+    parenthesis: parenthesis
+  });
+};
+
+var inspectFunction = function inspectFunction(value, _ref) {
+  var showFunctionBody = _ref.showFunctionBody,
+      parenthesis = _ref.parenthesis,
+      depth = _ref.depth;
+  var functionSource;
+
+  if (showFunctionBody) {
+    functionSource = value.toString();
+  } else {
+    var isArrowFunction = value.prototype === undefined;
+    var head = isArrowFunction ? "() =>" : "function ".concat(depth === 0 ? value.name : "", "()");
+    functionSource = "".concat(head, " {/* hidden */}");
+  }
+
+  if (parenthesis) {
+    return "(".concat(functionSource, ")");
+  }
+
+  return functionSource;
+};
+
+var inspectNumberObject = function inspectNumberObject(value, _ref) {
+  var nestedInspect = _ref.nestedInspect,
+      useNew = _ref.useNew,
+      parenthesis = _ref.parenthesis;
+  var numberSource = nestedInspect(value.valueOf());
+  return inspectConstructor("Number(".concat(numberSource, ")"), {
+    useNew: useNew,
+    parenthesis: parenthesis
+  });
+};
+
 var inspectObject = function inspectObject(value, _ref) {
   var nestedInspect = _ref.nestedInspect,
       _ref$seen = _ref.seen,
@@ -1383,47 +1476,8 @@ var inspectObject = function inspectObject(value, _ref) {
   });
 };
 
-var inspectFunction = function inspectFunction(value, _ref) {
-  var showFunctionBody = _ref.showFunctionBody,
-      parenthesis = _ref.parenthesis,
-      depth = _ref.depth;
-  var functionSource;
-
-  if (showFunctionBody) {
-    functionSource = value.toString();
-  } else {
-    var isArrowFunction = value.prototype === undefined;
-    var head = isArrowFunction ? "() =>" : "function ".concat(depth === 0 ? value.name : "", "()");
-    functionSource = "".concat(head, " {/* hidden */}");
-  }
-
-  if (parenthesis) {
-    return "(".concat(functionSource, ")");
-  }
-
-  return functionSource;
-};
-
-var inspectDate = function inspectDate(value, _ref) {
-  var nestedInspect = _ref.nestedInspect,
-      useNew = _ref.useNew,
-      parenthesis = _ref.parenthesis;
-  var dateSource = nestedInspect(value.valueOf());
-  return inspectConstructor("Date(".concat(dateSource, ")"), {
-    useNew: useNew,
-    parenthesis: parenthesis
-  });
-};
-
-var inspectNumberObject = function inspectNumberObject(value, _ref) {
-  var nestedInspect = _ref.nestedInspect,
-      useNew = _ref.useNew,
-      parenthesis = _ref.parenthesis;
-  var numberSource = nestedInspect(value.valueOf());
-  return inspectConstructor("Number(".concat(numberSource, ")"), {
-    useNew: useNew,
-    parenthesis: parenthesis
-  });
+var inspectRegExp = function inspectRegExp(value) {
+  return value.toString();
 };
 
 var inspectStringObject = function inspectStringObject(value, _ref) {
@@ -1437,48 +1491,9 @@ var inspectStringObject = function inspectStringObject(value, _ref) {
   });
 };
 
-var inspectBooleanObject = function inspectBooleanObject(value, _ref) {
-  var nestedInspect = _ref.nestedInspect,
-      useNew = _ref.useNew,
-      parenthesis = _ref.parenthesis;
-  var booleanSource = nestedInspect(value.valueOf());
-  return inspectConstructor("Boolean(".concat(booleanSource, ")"), {
-    useNew: useNew,
-    parenthesis: parenthesis
-  });
-};
-
-var inspectError = function inspectError(error, _ref) {
-  var nestedInspect = _ref.nestedInspect,
-      useNew = _ref.useNew,
-      parenthesis = _ref.parenthesis;
-  var messageSource = nestedInspect(error.message);
-  var errorSource = inspectConstructor("".concat(errorToConstructorName(error), "(").concat(messageSource, ")"), {
-    useNew: useNew,
-    parenthesis: parenthesis
-  });
-  return errorSource;
-};
-
-var errorToConstructorName = function errorToConstructorName(_ref2) {
-  var name = _ref2.name;
-
-  if (derivedErrorNameArray.includes(name)) {
-    return name;
-  }
-
-  return "Error";
-}; // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Error_types
-
-
-var derivedErrorNameArray = ["EvalError", "RangeError", "ReferenceError", "SyntaxError", "TypeError", "URIError"];
-
-var inspectRegExp = function inspectRegExp(value) {
-  return value.toString();
-};
-
 var compositeMap = {
   Array: inspectArray,
+  BigInt: inspectBigIntObject,
   Boolean: inspectBooleanObject,
   Error: inspectError,
   Date: inspectDate,
@@ -1520,8 +1535,14 @@ var inspect = function inspect(value) {
       }
     });
 
-    if (primitiveType) return primitiveMap[primitiveType](scopedValue, options);
-    if (compositeType in compositeMap) return compositeMap[compositeType](scopedValue, options);
+    if (primitiveType) {
+      return primitiveMap[primitiveType](scopedValue, options);
+    }
+
+    if (compositeType in compositeMap) {
+      return compositeMap[compositeType](scopedValue, options);
+    }
+
     return inspectConstructor("".concat(compositeType, "(").concat(inspectObject(scopedValue, options), ")"), _objectSpread(_objectSpread({}, options), {}, {
       parenthesis: false
     }));

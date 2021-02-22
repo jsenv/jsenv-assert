@@ -1,6 +1,6 @@
 {
 	"name": "@jsenv/assert",
-	"version": "2.2.4",
+	"version": "2.2.5",
 	"description": "Opinionated test assertion.",
 	"license": "MIT",
 	"repository": {
@@ -46,7 +46,7 @@
 		"postpublish": "node ./script/transform-package/restore-postinstall.js"
 	},
 	"dependencies": {
-		"@jsenv/inspect": "1.4.1",
+		"@jsenv/inspect": "1.5.0",
 		"@jsenv/logger": "4.0.0"
 	},
 	"devDependencies": {

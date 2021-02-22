@@ -18,12 +18,15 @@ executeTestPlan({
     "test/**/*.test.html": {
       chromium: {
         launch: launchChromiumTab,
+        allocatedMs: 60 * 1000,
       },
       firefox: {
         launch: launchFirefoxTab,
+        allocatedMs: 60 * 1000,
       },
       webkit: {
         launch: launchWebkitTab,
+        allocatedMs: 60 * 1000,
       },
     },
   },
